@@ -29,7 +29,7 @@
 }
 *{ box-sizing:border-box; }
 html,body{ margin:0; padding:0; }
-html{ -webkit-text-size-adjust:100%; }
+html{ -webkit-text-size-adjust:100%; overflow-x:clip; }
 body{
   min-height:100%; color:var(--steel); font-family:var(--serif);
   background:radial-gradient(130% 100% at 50% 8%, #171008 0%, #120d07 42%, var(--bg) 100%);
@@ -396,6 +396,18 @@ html.rm #opening .op-bar i{ animation:none; }
 .folder-frame::after{ content:""; position:absolute; inset:7px; border:1px solid rgba(120,100,60,.4); border-radius:3px; }
 .folder-frame::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:28px; border-radius:7px 0 0 7px;
   background:linear-gradient(90deg, rgba(60,44,14,.26), rgba(60,44,14,0)); }
+/* ---- the folder's front cover, swung open and left resting to the left of the document.
+   Mirrors .folder-frame across the spine so it lands exactly where the boot cover settles. ---- */
+.folder-flap{ position:absolute; z-index:-2; border-radius:7px; pointer-events:none;
+  top:calc(-1 * var(--fframe,16px) - 1px);
+  height:calc(100% + 2 * var(--fframe,16px) + 2px);
+  right:calc(100% + var(--fframe,16px) + 1px);
+  width:calc(100% + 2 * var(--fframe,16px) + 2px);
+  background:linear-gradient(150deg,#ded0a2,#c6b688); border:1px solid #9c8a5e;
+  box-shadow:0 40px 80px -30px #000, 0 0 0 1px rgba(120,100,60,.25) inset; }
+.folder-flap::after{ content:""; position:absolute; inset:7px; border:1px solid rgba(120,100,60,.4); border-radius:3px; }
+.folder-flap::before{ content:""; position:absolute; right:0; top:0; bottom:0; width:28px; border-radius:0 7px 7px 0;
+  background:linear-gradient(270deg, rgba(60,44,14,.26), rgba(60,44,14,0)); }
 /* the document itself, sitting inside the folder (a real first page) */
 .folder-page{ --pad-t:56px; --pad-x:58px; --pad-b:46px;
   position:absolute; inset:var(--fframe,16px); z-index:1; border-radius:3px; overflow:hidden; pointer-events:none;
@@ -416,8 +428,8 @@ html.rm #opening .op-bar i{ animation:none; }
 .folder-page *{ pointer-events:none !important; }
 .folder-cover{ position:absolute; inset:0; z-index:3; transform-origin:left center; transform:rotateY(0deg);
   transform-style:preserve-3d; }
-#folder.opening .folder-cover{ transform:rotateY(-158deg); animation:coverOpen 3s cubic-bezier(.44,.02,.16,1) both; }
-@keyframes coverOpen{ 0%{ transform:rotateY(0deg); } 58%{ transform:rotateY(-166deg); } 74%{ transform:rotateY(-150deg); } 88%{ transform:rotateY(-159deg); } 100%{ transform:rotateY(-158deg); } }
+#folder.opening .folder-cover{ transform:rotateY(-180deg); animation:coverOpen 3s cubic-bezier(.44,.02,.16,1) both; }
+@keyframes coverOpen{ 0%{ transform:rotateY(0deg); } 56%{ transform:rotateY(-187deg); } 74%{ transform:rotateY(-173deg); } 88%{ transform:rotateY(-182deg); } 100%{ transform:rotateY(-180deg); } }
 .fc-face, .fc-face-back{
   position:absolute; inset:0; border:1px solid #9c8a5e; border-radius:7px;
   -webkit-backface-visibility:hidden; backface-visibility:hidden;
@@ -451,15 +463,18 @@ html.rm #opening .op-bar i{ animation:none; }
 .js .chrome, .js .reader, .js .pagefoot{ transition:opacity .9s var(--ease), visibility 0s linear .9s; }
 .js body:not(.revealed) .chrome, .js body:not(.revealed) .reader, .js body:not(.revealed) .pagefoot{ opacity:0; visibility:hidden; }
 .js .page{ opacity:0; }
-.js body.revealed .page.active{ opacity:1; transition:opacity .5s var(--ease); }
+.js body.revealed .page.active{ opacity:1; }
+/* reveal polish runs only once (body.intro): when turning pages the next leaf is
+   already set beneath, with no fade / sweep / settle so text never "appears". */
+.js body.revealed.intro .page.active{ transition:opacity .5s var(--ease); }
 /* annotation sweep when a page enters */
-.js body.revealed .page.active .ann{ animation:annSweep .8s var(--ease) both; }
+.js body.revealed.intro .page.active .ann{ animation:annSweep .8s var(--ease) both; }
 @keyframes annSweep{ 0%{ background:linear-gradient(transparent 64%, rgba(201,163,94,.0) 64%); } 45%{ background:linear-gradient(transparent 48%, rgba(201,163,94,.55) 48%); } 100%{ background:linear-gradient(transparent 64%, rgba(201,163,94,.26) 64%); } }
 /* exhibits settle in */
-.js body.revealed .page.active .exhibit{ animation:settle .6s cubic-bezier(.2,.9,.3,1.1) both; }
+.js body.revealed.intro .page.active .exhibit{ animation:settle .6s cubic-bezier(.2,.9,.3,1.1) both; }
 @keyframes settle{ from{ opacity:0; transform:translateY(10px) rotate(-.4deg); } to{ opacity:1; transform:none; } }
 /* redaction smear on entry */
-.js body.revealed .page.active .redact{ animation:smear .5s var(--ease) both; }
+.js body.revealed.intro .page.active .redact{ animation:smear .5s var(--ease) both; }
 @keyframes smear{ from{ transform:skewX(-6deg) scaleX(.9); background:#1a1006; } to{ transform:none; background:var(--redact); } }
 @media (prefers-reduced-motion: reduce){
   *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; transition-delay:0s !important; }
@@ -501,7 +516,7 @@ html.rm .js .page{ opacity:1 !important; }
   body{ background:#fff !important; color:#000 !important; }
   .reader{ max-width:none; margin:0; padding:0; zoom:1 !important; }
   .sheet{ box-shadow:none; border:1px solid #ccc; border-radius:0; padding:20mm; margin:0; background:#fff !important; color:#000 !important; }
-  .sheet::before,.sheet::after,.stack,.folder-frame{ display:none !important; }
+  .sheet::before,.sheet::after,.stack,.folder-frame,.folder-flap{ display:none !important; }
   .page{ display:block !important; opacity:1 !important; page-break-after:always; }
   .page:last-child{ page-break-after:auto; }
   .cbar{ border:1px solid #000; background:#f0f0f0 !important; color:#000 !important; box-shadow:none; }
@@ -607,6 +622,7 @@ html.rm .js .page{ opacity:1 !important; }
     <nav class="pagetabs" id="pageTabs" aria-label="File pages"></nav>
     <div class="progress" aria-hidden="true"><i id="progressLine"></i></div>
     <article class="sheet" id="sheet" aria-label="O5 Command Dossier">
+      <div class="folder-flap" aria-hidden="true"></div>
       <div class="folder-frame" aria-hidden="true"></div>
       <div class="stack" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       <div class="book" id="book"></div>
@@ -1628,7 +1644,16 @@ function boot(){
     window.addEventListener("pointerdown", go); window.addEventListener("keydown", go);
   })();
 }
-function reveal(){ document.body.classList.add("revealed"); }
+function reveal(){
+  var b = document.body;
+  b.classList.add("revealed");
+  /* the entrance polish (page fade, exhibit settle, redaction smear) is a one-shot:
+     it is scoped to body.intro so later page turns show content already in place. */
+  if(!reducedMotion()){
+    b.classList.add("intro");
+    setTimeout(function(){ b.classList.remove("intro"); }, 1700);
+  }
+}
 
 /* ------------------------------------------------------------- navigation */
 function initNav(){
