@@ -108,27 +108,39 @@ button.chip:focus-visible{ outline:2px solid var(--chrome); outline-offset:1px; 
 .progress i{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--chrome-2),var(--chrome)); box-shadow:0 0 10px -2px var(--chrome); transition:width .45s var(--ease); }
 
 /* =========================== PAPER SHEET =========================== */
-.sheet{ position:relative; background:linear-gradient(178deg, var(--paper), var(--paper-2));
+.sheet{ --pad-t:56px; --pad-x:58px; --pad-b:46px;
+  position:relative; background:linear-gradient(178deg, var(--paper), var(--paper-2));
   color:var(--ink); border:1px solid var(--paper-edge); border-radius:3px;
   box-shadow:0 30px 70px -30px rgba(0,0,0,.85), 0 2px 0 rgba(255,255,255,.35) inset, 0 0 0 1px rgba(0,0,0,.25);
-  padding:56px 58px 46px; aspect-ratio:1 / 1.414; display:flex; flex-direction:column; }
+  padding:var(--pad-t) var(--pad-x) var(--pad-b); aspect-ratio:1 / 1.414; display:flex; flex-direction:column; }
 /* paper fibre only — no stains */
 .sheet::before{ content:""; position:absolute; inset:0; border-radius:3px; pointer-events:none; z-index:0;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
   background-size:240px 240px; opacity:.34; mix-blend-mode:multiply; }
-/* stacked-sheet shadows beneath */
+/* stacked sheets beneath — the pile shrinks as pages are turned (depth = pages remaining) */
 .stack{ position:absolute; inset:0; z-index:-1; border-radius:4px; pointer-events:none; }
-.stack::before,.stack::after{ content:""; position:absolute; inset:0; border-radius:4px; background:var(--paper-2); border:1px solid var(--paper-edge); }
-.stack::before{ transform:translate(6px,7px) rotate(.5deg); opacity:.55; }
-.stack::after{ transform:translate(12px,14px) rotate(1deg); opacity:.34; }
+.stack i{ position:absolute; inset:0; border-radius:4px; background:var(--paper-2); border:1px solid var(--paper-edge);
+  opacity:0; transition:opacity .5s var(--ease), transform .5s var(--ease); }
+.stack i:nth-child(1){ transform:translate(6px,7px) rotate(.5deg); }
+.stack i:nth-child(2){ transform:translate(12px,14px) rotate(1deg); }
+.stack i:nth-child(3){ transform:translate(17px,20px) rotate(1.4deg); }
+.stack i:nth-child(4){ transform:translate(22px,26px) rotate(1.8deg); }
+.stack i:nth-child(5){ transform:translate(27px,32px) rotate(2.2deg); }
+.stack i.on:nth-child(1){ opacity:.6; }
+.stack i.on:nth-child(2){ opacity:.5; }
+.stack i.on:nth-child(3){ opacity:.4; }
+.stack i.on:nth-child(4){ opacity:.3; }
+.stack i.on:nth-child(5){ opacity:.22; }
 
 /* the book (pages) */
-.book{ position:relative; z-index:1; flex:1 1 auto; display:flex; flex-direction:column; }
+.book{ position:relative; z-index:1; flex:1 1 auto; display:flex; flex-direction:column; perspective:2200px; }
 .page{ display:none; }
 .page.active{ display:flex; flex-direction:column; flex:1 1 auto; }
-.page.turning{ display:flex; flex-direction:column; position:absolute; top:0; left:0; right:0; z-index:5; opacity:1 !important;
+.page.turning{ display:flex; flex-direction:column; position:absolute; z-index:5; opacity:1 !important;
+  top:calc(-1 * var(--pad-t)); left:calc(-1 * var(--pad-x)); right:calc(-1 * var(--pad-x)); bottom:calc(-1 * var(--pad-b));
+  padding:var(--pad-t) var(--pad-x) var(--pad-b);
   backface-visibility:hidden; -webkit-backface-visibility:hidden;
-  background:linear-gradient(178deg,var(--paper),var(--paper-2)); border-radius:3px;
+  background:linear-gradient(178deg,var(--paper),var(--paper-2)); border:1px solid var(--paper-edge); border-radius:3px;
   box-shadow:0 0 0 1px rgba(188,171,128,.6); }
 .pgno{ font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:#6d6142;
   text-align:right; margin-top:auto; padding-top:10px; border-top:1px solid rgba(183,169,132,.5); }
@@ -340,6 +352,8 @@ html.rm #opening .op-bar i{ animation:none; }
   transition:opacity .55s var(--ease); perspective:1800px; }
 #folder.show{ opacity:1; }
 #folder.gone{ opacity:0; }
+#folder.ready .folder-inner{ pointer-events:auto; cursor:pointer; }
+#folder.ready .folder-inner:focus-visible{ outline:2px solid var(--chrome); outline-offset:8px; border-radius:7px; }
 .folder-inner{ position:relative; width:min(78vw,470px); aspect-ratio:1/1.3; transform-style:preserve-3d; }
 .folder-back{ position:absolute; inset:0; border-radius:7px; overflow:hidden;
   background:linear-gradient(158deg,#e6dcc0,#cfc29b); border:1px solid #9c8a5e;
@@ -366,8 +380,6 @@ html.rm #opening .op-bar i{ animation:none; }
 .fc-rule{ width:64%; height:1px; background:rgba(90,74,34,.5); margin:14px 0; }
 .fc-sub{ font-family:var(--serif); font-size:14px; color:#4a3c1c; max-width:82%; }
 .fc-ref{ font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:#6b5a2e; margin-top:14px; }
-.fc-hint{ margin-top:16px; font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:#6b5a2e; opacity:.8; animation:blink 1.6s steps(1) infinite; }
-#folder.opening .fc-hint{ opacity:0; }
 #folder .flap-shadow{ position:absolute; inset:0; transform-origin:left center; opacity:0; transition:opacity 2.8s var(--ease);
   background:linear-gradient(90deg, rgba(0,0,0,.45), rgba(0,0,0,0) 55%); border-radius:7px; }
 #folder.opening .flap-shadow{ opacity:.85; }
@@ -395,7 +407,7 @@ html.rm .js .page{ opacity:1 !important; }
 
 /* =========================== RESPONSIVE / MOBILE STRIP =========================== */
 .mobileStrip{ display:none; }
-@media (max-width:900px){ .reader{ padding:22px 14px 80px; } .sheet{ padding:38px 24px 30px; } .pagetabs{ padding:0 6px; } }
+@media (max-width:900px){ .reader{ padding:22px 14px 80px; } .sheet{ --pad-t:38px; --pad-x:24px; --pad-b:30px; } .pagetabs{ padding:0 6px; } }
 @media (max-width:640px){
   .top{ flex-wrap:wrap; gap:8px 10px; padding:8px 12px; }
   .top .label-extra{ display:none; }
@@ -404,7 +416,7 @@ html.rm .js .page{ opacity:1 !important; }
   .meta{ grid-template-columns:1fr; }
   .meta > div{ flex-wrap:wrap; gap:2px 10px; }
   .meta dt{ flex-basis:100%; }
-  .sheet{ padding:30px 16px 26px; }
+  .sheet{ --pad-t:30px; --pad-x:16px; --pad-b:26px; }
   .doc-head h1{ font-size:clamp(22px,7.4vw,32px); }
   .page p,.page li{ font-size:15px; text-align:left; -webkit-hyphens:none; hyphens:none; }
   #card{ left:12px !important; right:12px; bottom:12px; top:auto !important; width:auto; }
@@ -531,7 +543,7 @@ html.rm .js .page{ opacity:1 !important; }
     <nav class="pagetabs" id="pageTabs" aria-label="File pages"></nav>
     <div class="progress" aria-hidden="true"><i id="progressLine"></i></div>
     <article class="sheet" id="sheet" aria-label="O5 Command Dossier">
-      <div class="stack" aria-hidden="true"></div>
+      <div class="stack" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       <div class="book" id="book"></div>
     </article>
     <nav class="mobileStrip" id="mobileStrip" aria-label="File pages (compact)"></nav>
@@ -564,7 +576,6 @@ html.rm .js .page{ opacity:1 !important; }
         <div class="fc-rule"></div>
         <div class="fc-sub">Subject: O5-4 — “The Fourth Eye”</div>
         <div class="fc-ref">File O5CD-04 · revision 8 · internal circulation</div>
-        <div class="fc-hint" id="fcHint">opening file…</div>
       </div>
       <div class="fc-face-back"></div>
     </div>
@@ -944,7 +955,7 @@ function renderPage(p, i, total){
 }
 
 /* ------------------------------------------------------------- build DOM */
-var book, tabsEl, stripEl, progressEl, fileEl;
+var book, tabsEl, stripEl, progressEl, fileEl, stackEl;
 var current = 0;
 function build(){
   var m = C.meta;
@@ -965,11 +976,21 @@ function build(){
 }
 
 /* ------------------------------------------------------------- page turn */
+function setStack(){
+  if(!stackEl) return;
+  var leaves = stackEl.children, total = C.pages.length;
+  var remaining = total - 1 - current;
+  var n = total > 1 ? Math.round(remaining / (total - 1) * leaves.length) : 0;
+  for(var k=0;k<leaves.length;k++){
+    if(k < n) leaves[k].classList.add("on"); else leaves[k].classList.remove("on");
+  }
+}
 function updateUI(){
   var t = tabsEl.querySelectorAll(".tabbtn"), s = stripEl.querySelectorAll(".ms");
   for(var k=0;k<t.length;k++){ if(k===current) t[k].setAttribute("aria-current","true"); else t[k].removeAttribute("aria-current"); }
   for(var k2=0;k2<s.length;k2++){ if(k2===current) s[k2].setAttribute("aria-current","true"); else s[k2].removeAttribute("aria-current"); }
   progressEl.style.width = ((current + 1) / C.pages.length * 100) + "%";
+  setStack();
   var act = tabsEl.querySelector('.tabbtn[data-i="' + current + '"]');
   if(act && act.scrollIntoView) act.scrollIntoView({block:"nearest", inline:"nearest"});
 }
@@ -987,31 +1008,40 @@ function turnTo(i){
     to.classList.add("active"); current = i; updateUI(); scrollFileTop(); return;
   }
 
-  var hFrom = from.offsetHeight;
-  from.classList.remove("active");
-  to.classList.add("active");
-  var hTo = to.offsetHeight;
-  book.style.minHeight = Math.max(hFrom, hTo) + "px";
+  /* The whole sheet turns. Forward: the current leaf folds away to the left about the spine.
+     Back: that same leaf swings back in from the left — an exact reverse. */
+  var leaf = dir > 0 ? from : to;
+  var startRot = dir > 0 ? 0 : -180;
+  var endRot   = dir > 0 ? -180 : 0;
 
-  from.classList.add("turning", dir > 0 ? "fwd" : "back");
-  from.style.height = hFrom + "px";
-  from.style.transformOrigin = dir > 0 ? "left center" : "right center";
-  var rot = dir > 0 ? -180 : 180;
-  var half = rot * 0.5;
-  var anim = from.animate([
-    { transform:"rotateY(0deg)",     boxShadow:"0 24px 60px -30px rgba(0,0,0,.8)", offset:0 },
-    { transform:"rotateY(" + half + "deg)", boxShadow:"-30px 12px 60px -22px rgba(0,0,0,.7)", offset:0.5 },
-    { transform:"rotateY(" + rot + "deg)",  boxShadow:"0 24px 60px -30px rgba(0,0,0,.8)", offset:1 }
-  ], { duration: (dir > 0 ? 720 : 680), easing: "cubic-bezier(.36,.05,.2,1)" });
+  if(dir > 0){
+    from.classList.remove("active");
+    to.classList.add("active");           /* revealed beneath the folding leaf */
+  } else {
+    from.classList.add("active");         /* stays visible beneath the incoming leaf */
+    to.classList.add("active");
+  }
+
+  leaf.classList.add("turning", dir > 0 ? "fwd" : "back");
+  leaf.style.transformOrigin = "left center";
+  leaf.style.transform = "rotateY(" + startRot + "deg)";
+
+  var anim = leaf.animate([
+    { transform:"rotateY(" + startRot + "deg)", boxShadow:"0 24px 60px -30px rgba(0,0,0,.8)", offset:0 },
+    { transform:"rotateY(" + (startRot + (endRot - startRot) * 0.5) + "deg)", boxShadow:"-30px 12px 60px -22px rgba(0,0,0,.7)", offset:0.5 },
+    { transform:"rotateY(" + endRot + "deg)",  boxShadow:"0 24px 60px -30px rgba(0,0,0,.8)", offset:1 }
+  ], { duration: 900, easing: "cubic-bezier(.36,.05,.2,1)", fill:"both" });
   Sound.turn(dir);
 
   var finished = false;
   function done(){
     if(finished) return; finished = true;
-    from.classList.remove("turning","fwd","back"); from.style.height = ""; book.style.minHeight = "";
+    if(dir < 0) from.classList.remove("active");
+    leaf.classList.remove("turning","fwd","back");
+    leaf.style.transformOrigin = ""; leaf.style.transform = "";
   }
   anim.onfinish = done;
-  setTimeout(done, 900);
+  setTimeout(done, 1150);
 
   current = i; updateUI(); scrollFileTop();
 }
@@ -1241,16 +1271,31 @@ function boot(){
       setTimeout(function(){ stageFolder(); }, 430);
     }, hold || 2200);
   }
-  /* the closed folder appears, then swings open onto the first page */
+  /* the closed folder appears and WAITS; it opens only when the operator presses it */
   function stageFolder(){
     var f = document.getElementById("folder");
     if(!f){ reveal(); return; }
-    f.classList.add("show"); f.setAttribute("aria-hidden","false");
+    f.classList.add("show","ready"); f.setAttribute("aria-hidden","false");
+    var inner = f.querySelector(".folder-inner");
+    if(inner){ inner.setAttribute("role","button"); inner.setAttribute("tabindex","0"); inner.setAttribute("aria-label","Open the dossier folder"); }
     Sound.drv();
-    setTimeout(function(){ f.classList.add("opening"); Sound.open(); Sound.turn(1); }, 1050);
-    setTimeout(function(){ reveal(); }, 3500);
-    setTimeout(function(){ f.classList.add("gone"); }, 4400);
-    setTimeout(function(){ f.classList.remove("show","opening","gone"); f.setAttribute("aria-hidden","true"); }, 5400);
+
+    var opened = false;
+    function openNow(){
+      if(opened) return; opened = true;
+      f.classList.remove("ready");
+      f.removeEventListener("click", openNow);
+      f.removeEventListener("keydown", onKey);
+      if(inner){ inner.removeAttribute("role"); inner.removeAttribute("tabindex"); inner.removeAttribute("aria-label"); }
+      Sound.open(); Sound.turn(1);
+      f.classList.add("opening");
+      setTimeout(function(){ reveal(); }, 3200);
+      setTimeout(function(){ f.classList.add("gone"); }, 4200);
+      setTimeout(function(){ f.classList.remove("show","opening","gone"); f.setAttribute("aria-hidden","true"); }, 5200);
+    }
+    function onKey(ev){ if(ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar"){ ev.preventDefault(); openNow(); } }
+    f.addEventListener("click", openNow);
+    f.addEventListener("keydown", onKey);
   }
   function renderSide(){
     if(!side) return;
@@ -1454,6 +1499,7 @@ function init(){
   stripEl = document.getElementById("mobileStrip");
   progressEl = document.getElementById("progressLine");
   fileEl = document.getElementById("file");
+  stackEl = document.querySelector(".stack");
   build();
   updateUI();
   Notes.init();
