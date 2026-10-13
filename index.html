@@ -418,12 +418,7 @@ html.rm #opening .op-bar i{ animation:none; }
 .folder-page::before{ content:""; position:absolute; inset:0; border-radius:3px; pointer-events:none; z-index:0;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
   background-size:240px 240px; opacity:.34; mix-blend-mode:multiply; }
-/* light sweeps across the page inside the folder as the cover clears it */
-.folder-page::after{ content:""; position:absolute; inset:0; border-radius:3px; pointer-events:none; z-index:2; opacity:0;
-  background:linear-gradient(100deg, transparent 36%, rgba(255,250,232,.55) 52%, rgba(255,248,224,.1) 60%, transparent 70%);
-  background-size:240% 100%; background-position:135% 0; }
-#folder.opening .folder-page::after{ animation:pageSweep 3s cubic-bezier(.44,.02,.16,1) both; }
-@keyframes pageSweep{ 0%,26%{ background-position:135% 0; opacity:0; } 40%{ opacity:.8; } 74%{ opacity:.28; } 100%{ background-position:-45% 0; opacity:0; } }
+/* (the shiny light-sweep across the page as the folder opens is intentionally omitted) */
 .folder-page .page{ opacity:1 !important; position:relative; z-index:1; }
 .folder-page *{ pointer-events:none !important; }
 .folder-cover{ position:absolute; inset:0; z-index:3; transform-origin:left center; transform:rotateY(0deg);
@@ -457,6 +452,16 @@ html.rm #opening .op-bar i{ animation:none; }
   background:linear-gradient(90deg, rgba(0,0,0,.5), rgba(0,0,0,0) 62%); border-radius:7px; }
 #folder.opening .flap-shadow{ animation:flapDeep 3s cubic-bezier(.44,.02,.16,1) both; }
 @keyframes flapDeep{ 0%{ opacity:0; } 20%{ opacity:.94; } 55%{ opacity:.68; } 100%{ opacity:.26; } }
+/* ---- closing: the cover swings shut over the document, back to the closed folder ---- */
+#folder.closed .folder-cover{ transform:rotateY(0deg); }
+#folder.closing .folder-cover{ animation:coverClose 2s cubic-bezier(.4,.02,.14,1) both; }
+@keyframes coverClose{
+  0%{ transform:rotateY(-180deg); }
+  7%{ transform:rotateY(-186deg); }
+  100%{ transform:rotateY(0deg); }
+}
+#folder.closing .flap-shadow{ animation:flapShut 2s cubic-bezier(.4,.02,.14,1) both; }
+@keyframes flapShut{ 0%{ opacity:0; } 46%{ opacity:.5; } 100%{ opacity:0; } }
 @media (prefers-reduced-motion:reduce){ #folder{ transition:none; } .folder-cover{ transition:none; } }
 
 /* =========================== MOTION =========================== */
@@ -609,7 +614,7 @@ html.rm .js .page{ opacity:1 !important; }
   </div>
   <div class="spacer"></div>
   <button type="button" class="chip btn" id="btnContents" title="Table of contents">☰ Contents</button>
-  <button type="button" class="chip btn" id="btnCover" title="Back to the folder cover">◂ Cover</button>
+  <button type="button" class="chip btn" id="btnClose" title="Close the dossier folder">✕ Close</button>
   <span class="chip label-extra">DOSSIER <b id="chipRef">O5CD-04</b></span>
   <span class="chip label-extra">REV <b id="chipRev">8</b></span>
   <span class="chip label-extra">AUDIO <b>ON</b></span>
@@ -1220,6 +1225,116 @@ function turnTo(i){
   current = i; updateUI(); scrollFileTop();
 }
 
+/* ------------------------------------------------------------------ folder */
+/* The closed folder waits; pressing it opens it. Once the document is open, the
+   header's Close control swings the same cover back shut and returns to it. */
+function syncFolderPage(){
+  /* the folder holds a page: keep that page in step with whatever is on screen */
+  var fpg = document.getElementById("folderPage");
+  if(!fpg) return;
+  var act = document.getElementById("page-" + C.pages[current].id);
+  if(!act) return;
+  var cl = act.cloneNode(true);
+  cl.removeAttribute("id");
+  cl.setAttribute("aria-hidden","true");
+  var ids = cl.querySelectorAll("[id]");
+  for(var q = 0; q < ids.length; q++) ids[q].removeAttribute("id");
+  var foc = cl.querySelectorAll("[tabindex]");
+  for(var q2 = 0; q2 < foc.length; q2++){
+    foc[q2].removeAttribute("tabindex"); foc[q2].removeAttribute("role");
+    foc[q2].removeAttribute("aria-haspopup"); foc[q2].removeAttribute("aria-expanded");
+  }
+  fpg.innerHTML = "";
+  fpg.appendChild(cl);
+}
+function folderInner(){ var f = document.getElementById("folder"); return f ? f.querySelector(".folder-inner") : null; }
+function folderArm(){
+  var f = document.getElementById("folder"); if(!f) return;
+  f.classList.add("ready");
+  var inner = folderInner();
+  if(inner){ inner.setAttribute("role","button"); inner.setAttribute("tabindex","0"); inner.setAttribute("aria-label","Open the dossier folder"); }
+}
+function folderDisarm(){
+  var f = document.getElementById("folder"); if(!f) return;
+  f.classList.remove("ready");
+  var inner = folderInner();
+  if(inner){ inner.removeAttribute("role"); inner.removeAttribute("tabindex"); inner.removeAttribute("aria-label"); }
+}
+function folderStage(){
+  /* show the closed folder and wait for a press */
+  var f = document.getElementById("folder");
+  if(!f){ reveal(); return; }
+  positionFolder();
+  f.classList.remove("opening","closing","gone");
+  f.classList.add("show","closed");
+  f.style.transition = ""; f.style.opacity = "";
+  f.setAttribute("aria-hidden","false");
+  folderArm();
+  Sound.drv();
+}
+function folderOpen(){
+  var f = document.getElementById("folder");
+  if(!f || !f.classList.contains("ready") || f.classList.contains("opening")) return;
+  syncFolderPage();                                            /* the folder's inner page matches whatever is on screen */
+  positionFolder();
+  folderDisarm();
+  f.classList.remove("closed");
+  Sound.open(); Sound.turn(1);
+  if(reducedMotion()){
+    reveal();
+    f.classList.remove("show");
+    f.style.transition = ""; f.style.opacity = "";
+    f.setAttribute("aria-hidden","true");
+    return;
+  }
+  f.classList.add("opening");
+  setTimeout(function(){ reveal(); }, 3200);
+  setTimeout(function(){ f.classList.add("gone"); }, 4200);
+  setTimeout(function(){ f.classList.remove("show","opening","gone"); f.setAttribute("aria-hidden","true"); }, 5200);
+}
+function folderClose(){
+  var f = document.getElementById("folder");
+  if(!f) return;
+  if(!document.body.classList.contains("revealed")) return;   /* nothing open yet */
+  if(f.classList.contains("opening") || f.classList.contains("closing")) return;
+  if(navGuard){ navGuard(); navGuard = null; }                 /* settle any in-flight page turn */
+  syncFolderPage();                                            /* the folder's inner page matches what was on screen */
+  scrollFileTop();
+  positionFolder();
+  f.setAttribute("aria-hidden","false");
+  folderDisarm();
+  document.body.classList.remove("revealed");                  /* put the terminal chrome away with the document */
+  f.classList.remove("opening");
+  f.style.transition = "none"; f.style.opacity = "1";
+  if(reducedMotion()){
+    f.classList.add("show","closed");
+    f.style.transition = ""; f.style.opacity = "";
+    folderArm();
+    return;
+  }
+  Sound.turn(-1);
+  f.classList.add("show","closing");
+  setTimeout(function(){ Sound.close(); }, 1900);
+  setTimeout(function(){
+    f.classList.remove("closing");
+    f.classList.add("closed");
+    f.style.transition = ""; f.style.opacity = "";
+    folderArm();
+  }, 2080);
+}
+function initFolder(){
+  var f = document.getElementById("folder");
+  if(!f) return;
+  f.addEventListener("click", function(){ if(f.classList.contains("ready")) folderOpen(); });
+  f.addEventListener("keydown", function(ev){
+    if(!f.classList.contains("ready")) return;
+    if(ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar"){ ev.preventDefault(); folderOpen(); }
+  });
+  window.addEventListener("resize", function(){
+    if(f.classList.contains("show") && !f.classList.contains("closing")) positionFolder();
+  });
+}
+
 /* ------------------------------------------------------------------ notes */
 var Notes = (function(){
   var tip = document.getElementById("tip"), card = document.getElementById("card");
@@ -1442,40 +1557,10 @@ function boot(){
       box.classList.add("out");
       Sound.open();
       setTimeout(function(){ if(box.parentNode) box.parentNode.removeChild(box); }, 850);
-      setTimeout(function(){ stageFolder(); }, 430);
+      setTimeout(function(){ folderStage(); }, 430);
     }, hold || 2200);
   }
-  /* the closed folder appears and WAITS; it opens only when the operator presses it */
-  function stageFolder(){
-    var f = document.getElementById("folder");
-    if(!f){ reveal(); return; }
-    positionFolder();
-    f.classList.add("show","ready"); f.setAttribute("aria-hidden","false");
-    var inner = f.querySelector(".folder-inner");
-    if(inner){ inner.setAttribute("role","button"); inner.setAttribute("tabindex","0"); inner.setAttribute("aria-label","Open the dossier folder"); }
-    Sound.drv();
-
-    function onResize(){ if(!f.classList.contains("opening")){ positionFolder(); scheduleRelayout(); } }
-    window.addEventListener("resize", onResize);
-
-    var opened = false;
-    function openNow(){
-      if(opened) return; opened = true;
-      f.classList.remove("ready");
-      f.removeEventListener("click", openNow);
-      f.removeEventListener("keydown", onKey);
-      window.removeEventListener("resize", onResize);
-      if(inner){ inner.removeAttribute("role"); inner.removeAttribute("tabindex"); inner.removeAttribute("aria-label"); }
-      Sound.open(); Sound.turn(1);
-      f.classList.add("opening");
-      setTimeout(function(){ reveal(); }, 3200);
-      setTimeout(function(){ f.classList.add("gone"); }, 4200);
-      setTimeout(function(){ f.classList.remove("show","opening","gone"); f.setAttribute("aria-hidden","true"); }, 5200);
-    }
-    function onKey(ev){ if(ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar"){ ev.preventDefault(); openNow(); } }
-    f.addEventListener("click", openNow);
-    f.addEventListener("keydown", onKey);
-  }
+  /* (folder open/close live at module scope: folderStage / folderOpen / folderClose) */
   function renderSide(){
     if(!side) return;
     side.innerHTML =
@@ -1674,7 +1759,7 @@ function initNav(){
     else if(ev.key === "End"){ ev.preventDefault(); turnTo(C.pages.length - 1); }
   });
   var bc = document.getElementById("btnContents"); if(bc) bc.addEventListener("click", function(){ turnTo(pageIndexById("toc")); });
-  var bv = document.getElementById("btnCover"); if(bv) bv.addEventListener("click", function(){ turnTo(0); });
+  var bcl = document.getElementById("btnClose"); if(bcl) bcl.addEventListener("click", folderClose);
 }
 function initGlitch(){
   if(reducedMotion()) return;
@@ -1726,6 +1811,7 @@ function init(){
   updateUI();
   Notes.init();
   initNav();
+  initFolder();
   initGlitch();
   initAtmosphere();
   relayout();
