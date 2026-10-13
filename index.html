@@ -185,7 +185,7 @@ button.chip:focus-visible{ outline:2px solid var(--chrome); outline-offset:1px; 
 .exhibit{ margin:12px 0 18px; }
 .exhibit-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:12px 0 18px; }
 .exhibit-row .exhibit{ margin:0; }
-.slot{ position:relative; aspect-ratio:16/9; max-height:158px; width:100%; display:grid; place-items:center; gap:6px;
+.slot{ position:relative; aspect-ratio:16/9; max-height:132px; width:100%; display:grid; place-items:center; gap:6px;
   border:1px dashed #a08f63; border-radius:2px; background:
     repeating-linear-gradient(-45deg, rgba(0,0,0,.035) 0 10px, transparent 10px 20px), rgba(255,255,255,.18);
   color:#7a6c47; text-align:center; padding:14px;
@@ -346,12 +346,19 @@ html.rm #opening .op-bar i{ animation:none; }
   box-shadow:0 40px 80px -30px #000, 0 0 0 1px rgba(0,0,0,.25) inset; }
 .folder-back::after{ content:""; position:absolute; inset:14px; border:1px solid rgba(120,100,60,.4); border-radius:3px; }
 .folder-cover{ position:absolute; inset:0; transform-origin:left center; transform:rotateY(0deg);
-  transition:transform 1.15s cubic-bezier(.5,.02,.18,1);
-  background:linear-gradient(150deg,#e0d3a6,#c8b98c); border:1px solid #9c8a5e; border-radius:7px;
+  transition:transform 2.8s cubic-bezier(.44,.02,.16,1);
+  transform-style:preserve-3d; }
+#folder.opening .folder-cover{ transform:rotateY(-158deg); }
+.fc-face, .fc-face-back{
+  position:absolute; inset:0; border:1px solid #9c8a5e; border-radius:7px;
+  -webkit-backface-visibility:hidden; backface-visibility:hidden;
+  background:linear-gradient(150deg,#e0d3a6,#c8b98c); }
+.fc-face{ display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:6px; text-align:center; padding:34px; color:#3a2f18;
   box-shadow:0 40px 80px -30px #000, 0 2px 0 rgba(255,255,255,.35) inset; }
-#folder.opening .folder-cover{ transform:rotateY(-122deg); }
-.fc-face{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:6px; text-align:center; padding:34px; color:#3a2f18; }
+.fc-face-back{ transform:rotateY(180deg);
+  background:linear-gradient(150deg,#ded0a2,#c6b688);
+  box-shadow:0 40px 80px -30px #000, 0 0 0 1px rgba(120,100,60,.25) inset; }
 .fc-seal{ color:#4a3a16; margin-bottom:10px; }
 .fc-seal svg{ width:74px; height:74px; }
 .fc-name{ font-family:var(--mono); font-weight:700; font-size:23px; letter-spacing:.30em; padding-left:.30em; }
@@ -361,7 +368,7 @@ html.rm #opening .op-bar i{ animation:none; }
 .fc-ref{ font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:#6b5a2e; margin-top:14px; }
 .fc-hint{ margin-top:16px; font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:#6b5a2e; opacity:.8; animation:blink 1.6s steps(1) infinite; }
 #folder.opening .fc-hint{ opacity:0; }
-#folder .flap-shadow{ position:absolute; inset:0; transform-origin:left center; opacity:0; transition:opacity 1.15s var(--ease);
+#folder .flap-shadow{ position:absolute; inset:0; transform-origin:left center; opacity:0; transition:opacity 2.8s var(--ease);
   background:linear-gradient(90deg, rgba(0,0,0,.45), rgba(0,0,0,0) 55%); border-radius:7px; }
 #folder.opening .flap-shadow{ opacity:.85; }
 @media (prefers-reduced-motion:reduce){ #folder{ transition:none; } .folder-cover{ transition:none; } }
@@ -559,6 +566,7 @@ html.rm .js .page{ opacity:1 !important; }
         <div class="fc-ref">File O5CD-04 · revision 8 · internal circulation</div>
         <div class="fc-hint" id="fcHint">opening file…</div>
       </div>
+      <div class="fc-face-back"></div>
     </div>
     <div class="flap-shadow"></div>
   </div>
@@ -614,9 +622,11 @@ window.AN_CONTENT = {
     { id:"cover",   tab:"Cover",    label:"Cover",             kind:"cover" },
     { id:"intro",   tab:"Intro",    label:"Introduction",      kind:"intro",   title:"Introduction",
       blocks:[
-        { t:"p", x:"Archive Nine exists to watch a single seat. This file is the record of what that watch has produced. It was assembled from material gathered by members of the Group — recovered documents, testimony, and photographic findings — and each entry was entered only after it had been checked against the source it came from." },
-        { t:"p", x:"Nothing in this file is offered as fact. Where an entry rests on a single source, it says so. Where two sources disagree, both are recorded and neither is preferred. Where a name, a date, or a designation could not be recovered, the file records that it could not be recovered, and does not guess at one." },
-        { t:"p", x:"The file is revised as verified material arrives, and not otherwise. Its sections are numbered for reference; its appendices record how the file itself has been handled. It is held for internal circulation within Archive Nine and is not a registered Foundation document." }
+        { t:"p", x:"Archive Nine exists to keep watch upon a single seat. This file is the record of what that watch has yielded. It has been assembled from material gathered by members of the Group — recovered documents, testimony, and photographic findings — and each entry was admitted only after it had been checked against the source from which it was said to derive." },
+        { t:"p", x:"Nothing in this file is tendered as fact. Where an entry rests upon a single source, the file says so. Where two sources are in conflict, both are recorded and neither is preferred. Where a name, a date, or a designation could not be recovered, the file states plainly that it could not be recovered, and declines to supply a substitute." },
+        { t:"p", x:"The Group's remit is deliberately narrow. We were constituted to observe, to record, and to corroborate — not to intervene, and not to conclude. Every section that follows is therefore an inventory of what is held and of the confidence that may be placed in it, rather than an argument for any particular reading." },
+        { t:"p", x:"Entries are revised as verified material arrives, and upon no other occasion. Sections are numbered for ease of reference; those appendices which record the file's own handling are administrative in character, and carry no assessment of the subject. The file is retained for internal circulation within Archive Nine and is not a registered Foundation document; it derives its authority from the Group alone." },
+        { t:"p", x:"Marks of provenance and of doubt are used throughout, and are defined in the appendix on administrative notes. A reader who finds an entry he cannot trace to a verified submission should treat it as suspect and should report it without delay." }
       ] },
     { id:"toc",     tab:"Contents", label:"Table of Contents", kind:"toc",     title:"Table of Contents" },
 
@@ -642,21 +652,25 @@ window.AN_CONTENT = {
         { r:"5", d:"2026-10-07", a:"Conflicting historical accounts recorded.", b:"Records" },
         { r:"6", d:"2026-10-09", a:"Anomalous-characteristics section drafted; no explanation favoured.", b:"Analysis" },
         { r:"7", d:"2026-10-11", a:"Watch section drafted; working belief logged as a hypothesis only.", b:"Field Liaison" },
-        { r:"8", d:"2026-10-12", a:"Scope review; internal concerns entered; file placed under review.", b:"Group Leader" }
+        { r:"8", d:"2026-10-12", a:"Scope review; internal concerns entered; file placed under review.", b:"Group Leader" },
+        { r:"9", d:"2026-10-12", a:"Superseded text struck and replacements entered; file re-issued as revision 8.", b:"Compilation" },
+        { r:"10", d:"2026-10-12", a:"Integrity check completed; no untraced entry found in this revision.", b:"Records" }
       ],
       tail:[
-        { t:"p", x:"The file is held in the Group archive. Copies are made only by the compilation team, and a superseded revision is withdrawn when the next is issued." }
+        { t:"p", x:"The file is held in the Group archive. Copies are made only by the compilation team, and a superseded revision is withdrawn when the next is issued." },
+        { t:"p", x:"Each withdrawal is logged. A withdrawn revision is retained by Records but is not to be circulated, and must not be cited as authority for anything that appears in a later revision." }
       ] },
     { id:"admin", tab:"Admin", label:"Appendix · Administrative Notes", kind:"admin", title:"Administrative Notes",
       blocks:[
         { t:"p", x:"This appendix records the conventions under which the file is kept. It does not alter anything in the file; it describes only how the file is handled." },
         { t:"ul", items:[
           "Distribution is limited to members of Archive Nine and to persons the Group Leader has authorized.",
-          "No member may amend an entry directly; corrections are forwarded for verification (see §9).",
+          "No member may amend an entry directly; corrections are forwarded for verification (see [[ref:s9|§9]]).",
           "Redactions are shown as bars. A revision is shown as struck text followed by its replacement.",
           "Material whose origin cannot be traced to a member of the Group is set aside and is not entered.",
           "The file is retained for as long as the Group’s remit stands, and is reviewed at each revision."
         ] },
+        { t:"p", x:"A note on the reading of this file: an entry marked as unconfirmed is not thereby false, and an entry marked as confirmed is not thereby complete. The file distinguishes between what is held and what is proven, and a reader should hold that distinction firmly in mind." },
         { t:"p", x:"Questions about the handling of the file are directed to Records. Questions about its contents are not." }
       ] }
   ],
@@ -665,87 +679,103 @@ window.AN_CONTENT = {
     {
       id:"s1", num:"1", title:"Identification and Designation",
       blocks:[
-        {t:"p", x:"The subject is believed to hold the Council seat designated O5-4. Primary codename: “The Fourth Eye.” Secondary codename: “The Auditor.” Where those names come from is unknown. The Council is not acknowledged within the Foundation, and neither its existence nor that of its members is a matter of general record. [[note:n1]]What the subject’s designation refers to, beyond the seat itself, is not known to us.[[/note]] How the designation is assigned, and by whom, has not been established."},
-        {t:"p", x:"The subject is believed to oversee a department. Its name has not been discovered by any of our attempts, and it is recorded here only as THE DEPARTMENT OF ██████████. [[note:n2]]Its purpose and tasks are unknown to us at this time.[[/note]] We hold no theory at all as to what the department is."},
-        {t:"p", x:"We have not been able to establish when the subject assumed her seat, or by what process. Any record that would show it is not in our hands."}
+        {t:"p", x:"The subject is believed to hold the Council seat designated O5-4. The primary codename in circulation is “The Fourth Eye”; a secondary appellation, “The Auditor,” is recorded in two independent memoranda. The provenance of both names is unknown. The Council is not acknowledged within the Foundation, and neither its existence nor that of its members is a matter of general record; we work, accordingly, from inference rather than from official acknowledgement. [[note:n1]]What the subject’s designation refers to, beyond the seat itself, is not known to us.[[/note]] The manner in which the designation is conferred, and by whom, has not been established."},
+        {t:"p", x:"The subject is believed to preside over a department. Its name has resisted every attempt at recovery, and it is recorded here only as THE DEPARTMENT OF ██████████. [[note:n2]]Its purpose and tasks are unknown to us at this time.[[/note]] We hold no theory whatsoever as to what the department is, and we decline to invent one."},
+        {t:"p", x:"Two access manifests, recovered independently and at different times, each carry the seat without carrying a name beside it. That silence is itself consistent, and we treat it as evidence of deliberate practice rather than of accident. No third manifest has come to light."},
+        {t:"p", x:"The seat appears to be one of a small number in a body we cannot enumerate. We do not know how many seats exist, how they are filled, or how long a holder retains one. Any figure quoted elsewhere in the material gathered is a conjecture, and is marked as such."},
+        {t:"p", x:"We have not been able to establish when the subject assumed her seat, or by what process. Any record that would show it is not in our hands, and we have not found its absence to be explicable by ordinary loss."}
       ]
     },
     {
       id:"s2", num:"2", title:"Attributed Identity",
       blocks:[
-        {t:"p", x:"We assess that “Heather H.” is either an identity the subject uses or her actual name; the reasoning behind this assessment was developed by this group and is kept out of this document. The two surviving records that connect the name to the seat do not agree with each other on matters we will not set down here. Whether the name is a cover or her true name, we cannot say. Within Archive Nine, this attribution is treated as our most credible line of inquiry."}
+        {t:"p", x:"We assess that “Heather H.” is either an identity the subject employs or her actual name. The reasoning that supports this assessment was developed within this Group and is deliberately withheld from these pages, in accordance with our practice of publishing conclusions without disclosing the means by which they were reached."},
+        {t:"p", x:"Two records survive that connect the name to the seat. They do not agree with one another on matters we will not set down here, and the points of disagreement are material. Whether the name is a cover, a former name, or her true name, we are unable to determine; each reading remains open."},
+        {t:"p", x:"Within Archive Nine, this attribution is treated as our most credible line of inquiry — an opinion held with confidence, though not held as proof. We record it in order that a later revision may confirm or dismiss it, and not in order that it be relied upon in the interval."},
+        {t:"p", x:"The initial “H.” is recorded exactly as it appears in the source, and without expansion. We have resisted the temptation to propose expansions, since a plausible guess, once written, has a way of hardening into an unearned certainty."},
+        {t:"p", x:"Should further material surface — a signature, an enrolment, a record of employment, or any document bearing the name in the subject's own hand — it is to be forwarded to Records for verification in the ordinary way. Until such material is verified, the attribution stands as an assessment and nothing more."}
       ]
     },
     {
       id:"s3", num:"3", title:"Appearance",
       blocks:[
-        {t:"p", x:"We hold photographic findings that we believe may include the subject. Some were taken by members of this group; others were recovered from sources outside it and are theorized to show her among those present. None has been confirmed. Image quality, intervening figures, and the distance at which the material was obtained leave every identification in doubt, and each finding below is recorded as a possible likeness rather than a verified observation."},
-        {t:"fig", fig:"Fig. 3-1", cap:"Finding A — captured by Archive Nine. A figure in the frame is theorized to be the subject; the identification is unconfirmed.", sub:"image slot reserved · attachment withheld"},
-        {t:"fig", fig:"Fig. 3-2", cap:"Finding B — recovered, source unverified. A figure in the frame is theorized to be the subject; the identification is unconfirmed.", sub:"image slot reserved · attachment withheld"},
-        {t:"p", x:"Physical descriptions agree in two respects: the subject is described as having long brown hair and blue eyes. Several reports state that her eyes appear faintly luminescent; this is not observed in every account and remains unconfirmed."},
-        {t:"p", x:"Reported items of clothing are recorded separately from physical features. The subject is repeatedly described in a dark brown blazer or suit, and as wearing black, round, full-rim metal sunglasses with a top bar and an aviator-style wire frame. Whether she wears the sunglasses at all times is unknown."},
-        {t:"p", x:"Accounts disagree on height, apparent age, and further details we have chosen not to record. No two reports are in full agreement, and we have not attempted to reconcile them."}
+        {t:"p", x:"We hold photographic findings that we believe may include the subject. Several were taken by members of this Group; others were recovered from sources outside it and are theorized to show her among those present. None has been confirmed. The quality of the material, the intervention of other figures in the frame, and the distance at which it was obtained leave every identification in doubt, and each finding is therefore recorded as a possible likeness rather than a verified observation."},
+        {t:"fig", fig:"Fig. 3-1", cap:"Finding A — captured by Archive Nine. Figure theorized to be the subject; identification unconfirmed.", sub:"image slot reserved · attachment withheld"},
+        {t:"fig", fig:"Fig. 3-2", cap:"Finding B — recovered; source unverified. Figure theorized to be the subject; identification unconfirmed.", sub:"image slot reserved · attachment withheld"},
+        {t:"p", x:"Descriptions agree in two respects and in no others: the subject is reported to have long brown hair and blue eyes. Several accounts add that her eyes appear faintly luminescent; the observation is not universal, and it is recorded here as reported rather than as established."},
+        {t:"p", x:"Items of dress are recorded separately from physical features, and are not permitted to stand as evidence of either. The subject is repeatedly described in a dark brown blazer or suit, and as wearing black, round, full-rim metal sunglasses with a top bar and an aviator-style wire frame. Whether the sunglasses are worn at all times is unknown, and no inference is drawn from them."},
+        {t:"p", x:"Accounts diverge on height, apparent age, and several further particulars which we have chosen not to record. No two reports are in full agreement; we have not attempted to reconcile them, and we regard reconciliation as premature."}
       ]
     },
     {
       id:"s4", num:"4", title:"Professional Profile",
       blocks:[
-        {t:"p", x:"Assessment is limited. The subject’s professional conduct has [[rev:been directly observed|been inferred from indirect indicators only]]. Personnel reported to have had contact with her describe competence and a controlled disposition; the basis for both descriptions is thin."},
-        {t:"p", x:"Her methods, her sphere of influence, and how she manages her own work are not documented in this file. How she conducts herself during Council sessions is unknown to us. No reliable assessment of her relationships with other Council members is held."}
+        {t:"p", x:"Assessment of the subject's professional conduct is necessarily limited, and is offered with an explicit reservation as to its basis. The subject's conduct has [[rev:been directly observed|been inferred from indirect indicators only]], and the inference is neither strong nor unanimous."},
+        {t:"p", x:"Personnel reported to have had contact with her describe competence and a controlled disposition. The basis for both descriptions is thin: the accounts are few, they are second-hand at one remove, and they agree chiefly in the impression they convey rather than in any particular they record."},
+        {t:"p", x:"Her methods, her sphere of influence, and the manner in which she manages her own work are not documented in this file. How she conducts herself during Council sessions is unknown to us. No reliable account of her relations with other members of the Council is held, and we decline to infer one from the silence."},
+        {t:"p", x:"We note, without explaining it, that the material describing her competence is markedly more consistent than the material describing anything else about her. Whether this reflects the subject or the manner in which the material was gathered, we cannot say."},
+        {t:"p", x:"Any assessment of the subject's professional capacity should be read as provisional. It is entered here to complete the file's outline, and not to establish a character."}
       ]
     },
     {
       id:"s5", num:"5", title:"Conflicting Historical Accounts",
       blocks:[
-        {t:"p", x:"The records describing the subject’s history are mutually incompatible. Three partial accounts are held; none can be reconciled with the others:"},
+        {t:"p", x:"The records describing the subject's history are mutually incompatible. Three partial accounts are held, and none can be reconciled with the others:"},
         {t:"ul", items:["one account, not reproduced here","a second account, not reproduced here","a third account, held only as a fragment"]},
-        {t:"p", x:"We have not been able to establish which account, if any, is genuine; the material in our hands is insufficient to support a reliable history. We believe additional records exist, but we have not located them. At least one account is suspected to have been altered before it reached us."}
+        {t:"p", x:"We have not been able to establish which account, if any, is genuine; the material in our hands is insufficient to support a reliable history. We believe additional records exist, but we have not located them. At least one account is suspected to have been altered before it reached us, and we have not been able to determine at what point the alteration was made."},
+        {t:"p", x:"The three accounts differ not merely in detail but in kind: they disagree as to the subject's origin, her training, and the character of her elevation to the seat. A discrepancy of this severity is difficult to attribute to error alone, and we have therefore left all three standing."},
+        {t:"p", x:"We record, as a matter of method, that we have made no attempt to harmonize the accounts. To prefer one by fiat would lend it a credibility it has not earned; to synthesize a fourth from the three would be to invent a history rather than to recover one."}
       ]
     },
     {
       id:"s6", num:"6", title:"Possible Anomalous Characteristics",
       blocks:[
-        {t:"p", x:"The following explanations have been proposed. None is confirmed."},
+        {t:"p", x:"The following explanations have been proposed for the observations recorded in [[ref:s3|§3]] and [[ref:s7|§7]]. None is confirmed, and they are set down in no order of preference."},
         {t:"ul", items:[
           "The subject is herself anomalous.",
           "The reported luminescence is a symptom of an external object (see [[ref:s7|§7]]).",
           "The luminescence is an artifact of recording, or of something at the point of capture that we cannot identify."
         ]},
-        {t:"p", x:"Available reports disagree, and some observations are believed to be inaccurate or unrelated. We do not regard any explanation as more likely than the others at present."}
+        {t:"p", x:"Available reports disagree, and some observations are believed to be inaccurate or unrelated. We do not regard any explanation as more likely than the others at present, and we have resisted the inclination to favour the most tractable."},
+        {t:"p", x:"The third explanation is the least satisfactory and the hardest to exclude. Photographic anomalies of this kind are commonly produced by defect, by reflection, or by the instrument itself, and we cannot demonstrate that the observed luminescence belongs to the subject rather than to the medium through which she was recorded."},
+        {t:"p", x:"We are similarly unable to determine whether the reports describe a single phenomenon or several distinct ones that have been conflated in the retelling. Until that question is settled, no explanation can properly be tested."}
       ]
     },
     {
       id:"s7", num:"7", title:"The Stopped Watch",
       blocks:[
-        {t:"p", x:"The subject is reported to carry an antique silver pocket watch, attached to her blazer by a dark chain. Its hands are reported to move erratically. The subject appears to understand what the hands indicate; no observer has been able to determine how this is possible. Reports refer to the object as “The Stopped Watch.”"},
+        {t:"p", x:"The subject is reported to carry an antique silver pocket watch, suspended from her blazer by a dark chain. Its hands are reported to move erratically — advancing, retreating, and at intervals still. The subject appears to understand what the hands indicate; no observer has been able to determine how this is possible. Reports refer to the object as “The Stopped Watch,” a name whose origin we have not traced."},
         {t:"fig", fig:"Fig. 7-1", cap:"The object, as described to Archive Nine. No photograph has been obtained.", sub:"image slot reserved · attachment withheld"},
-        {t:"p", x:"Our working belief is that the object is [[note:n3]]some form of reality anchor[[/note]]. The reasoning behind this is kept out of this document, and the assessment remains unconfirmed."},
-        {t:"p", x:"No attempt to remove the object from the subject is recorded, and we are unable to determine whether it can be removed. No further details can be confirmed from the material gathered."},
-        {t:"p", x:"The object’s origin and function are not established. Whether it is anomalous, we cannot say."}
+        {t:"p", x:"Our working belief is that the object is [[note:n3]]some form of reality anchor[[/note]]. The reasoning behind this is kept out of this document, and the assessment remains unconfirmed; it is to be read as a hypothesis, and not as a finding."},
+        {t:"p", x:"No attempt to remove the object from the subject is recorded, and we are unable to determine whether it is removable at all. The object's origin, composition, and function are alike unestablished. Whether it is anomalous, we cannot say, and we decline to speculate in the absence of material."},
+        {t:"p", x:"We note only that the object is described as belonging to the subject rather than as being carried by her by chance, and that no account within the material gathered describes her ever setting it aside."}
       ]
     },
     {
       id:"s8", num:"8", title:"Internal Concerns and Unresolved Matters",
       blocks:[
         {t:"ul", items:[
-          "Several findings in this file could not be corroborated by any second source. We cannot determine whether particular records reflect genuine information or were altered before reaching us.",
-          "One department is recorded for the subject. Its name has not been recovered, and no theory as to its identity is offered.",
+          "Several findings in this file could not be corroborated by any second source. We cannot determine whether particular records reflect genuine information or were altered before reaching us, and the distinction is not an academic one.",
+          "One department is recorded for the subject. Its name has not been recovered, and no theory as to its identity is offered. Readers are asked not to supply one.",
           "[[note:n4]]The subject remains under review, alongside a number of other Council subjects we cannot disclose.[[/note]]"
         ]},
+        {t:"p", x:"We record these matters without resolving them. To resolve them upon the present material would require assumptions we are not prepared to make, and a file that conceals its uncertainties is of less use than one that admits them."},
+        {t:"p", x:"Two further concerns are noted for completeness. The first is that the file's own scope has widened since its opening, in a manner the Group has not formally revisited. The second is that we cannot establish, from the material gathered, whether the gaps in this file are gaps in the world or gaps in our access to it."},
         {t:"p", x:"No conclusion is offered. This file records what is held, not what is proven."}
       ]
     },
     {
       id:"s9", num:"9", title:"Additions, Corrections, and Requests for Review",
       blocks:[
-        {t:"p", x:"This file is issued and revised only by its compilation team. No member may amend an entry directly."},
-        {t:"p", x:"Material a member believes should be added — a report, a sighting, a photograph, or a correction to an existing entry — is to be forwarded to Records for verification. Verified material is passed to the compilation team and entered at the next revision. Nothing reaches the compilation team unverified, and no unverified material is entered."},
+        {t:"p", x:"This file is issued and revised only by its compilation team. No member may amend an entry directly, and no entry is altered in place."},
+        {t:"p", x:"Material a member believes should be added — a report, a sighting, a photograph, or a correction to an existing entry — is to be forwarded to Records for verification. Verified material is passed to the compilation team and entered at the next revision. Nothing reaches the compilation team unverified, and no unverified material is entered, however plausible it may appear."},
         {t:"ul", items:[
           "Submissions awaiting verification are held as pending and are not discarded.",
           "Material whose origin cannot be traced to a member of Archive Nine is set aside before it is considered.",
-          "Requests for amendment made from outside the Group are not accepted."
+          "Requests for amendment made from outside the Group are not accepted, and are not acknowledged."
         ]},
-        {t:"p", x:"If this file has been altered before it reached us, the point of alteration was most likely here. Members are to report any entry they cannot trace to a verified submission."}
+        {t:"p", x:"A revision is recorded and not concealed: superseded text is struck through and its replacement shown beside it, so that the file's own history may be read without recourse to an earlier copy."},
+        {t:"p", x:"If this file has been altered before it reached us, the point of alteration was most likely here, in the interval between submission and verification. Members are to report any entry they cannot trace to a verified submission, and to do so without delay."}
       ]
     }
   ],
@@ -1217,10 +1247,10 @@ function boot(){
     if(!f){ reveal(); return; }
     f.classList.add("show"); f.setAttribute("aria-hidden","false");
     Sound.drv();
-    setTimeout(function(){ f.classList.add("opening"); Sound.open(); Sound.turn(1); }, 950);
-    setTimeout(function(){ reveal(); }, 1780);
-    setTimeout(function(){ f.classList.add("gone"); }, 2400);
-    setTimeout(function(){ f.classList.remove("show","opening","gone"); f.setAttribute("aria-hidden","true"); }, 3300);
+    setTimeout(function(){ f.classList.add("opening"); Sound.open(); Sound.turn(1); }, 1050);
+    setTimeout(function(){ reveal(); }, 3500);
+    setTimeout(function(){ f.classList.add("gone"); }, 4400);
+    setTimeout(function(){ f.classList.remove("show","opening","gone"); f.setAttribute("aria-hidden","true"); }, 5400);
   }
   function renderSide(){
     if(!side) return;
