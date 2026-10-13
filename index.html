@@ -303,6 +303,36 @@ button.chip:focus-visible{ outline:2px solid var(--chrome); outline-offset:1px; 
 .boot-welcome.redact-in .w-redact{ width:168px; }
 .boot-welcome .w-sub{ margin-top:16px; letter-spacing:.18em; text-transform:uppercase; font-size:10px; color:var(--steel-dim); opacity:0; transition:opacity .8s var(--ease) .5s; }
 .boot-welcome.redact-in .w-sub{ opacity:.85; }
+/* ---- the black CRT "opening document" screen ---- */
+#opening{
+  position:fixed; inset:0; z-index:95; display:grid; place-items:center;
+  transition:opacity .8s var(--ease);
+}
+#opening.out{ opacity:0; }
+#opening .op-inner{
+  background:#000; border:1px solid #3d331d; border-radius:3px;
+  padding:30px 48px; text-align:center;
+  box-shadow:0 0 0 1px #000 inset, 0 26px 80px -30px #000, 0 0 70px -30px var(--chrome-2);
+  animation:opIn .5s var(--ease) both;
+}
+@keyframes opIn{ from{ opacity:0; transform:translateY(10px) scale(.98); } to{ opacity:1; transform:none; } }
+#opening .op-t{
+  font-family:var(--mono); color:var(--chrome);
+  letter-spacing:.3em; padding-left:.3em; text-transform:uppercase; font-size:12.5px;
+  text-shadow:0 0 10px rgba(201,163,94,.35);
+}
+#opening .op-bar{
+  margin:18px auto 0; width:220px; height:4px; background:#120d07;
+  border:1px solid #3d331d; border-radius:2px; overflow:hidden;
+}
+#opening .op-bar i{
+  display:block; width:38%; height:100%;
+  background:linear-gradient(90deg,var(--chrome-2),var(--chrome));
+  box-shadow:0 0 10px -2px var(--chrome);
+  animation:opSweep 1.15s cubic-bezier(.5,0,.5,1) infinite;
+}
+@keyframes opSweep{ 0%{ transform:translateX(-110%); } 100%{ transform:translateX(285%); } }
+html.rm #opening .op-bar i{ animation:none; }
 @media (max-width:720px){ #boot{ font-size:11.5px; } .boot-body{ grid-template-columns:1fr; } .boot-side{ display:none; } .boot-prog{ flex-basis:110px; } }
 
 /* =========================== FOLDER (open animation) =========================== */
@@ -334,10 +364,6 @@ button.chip:focus-visible{ outline:2px solid var(--chrome); outline-offset:1px; 
 #folder .flap-shadow{ position:absolute; inset:0; transform-origin:left center; opacity:0; transition:opacity 1.15s var(--ease);
   background:linear-gradient(90deg, rgba(0,0,0,.45), rgba(0,0,0,0) 55%); border-radius:7px; }
 #folder.opening .flap-shadow{ opacity:.85; }
-.folder-openline{ position:absolute; left:50%; bottom:-46px; transform:translateX(-50%); z-index:7;
-  font-family:var(--mono); font-size:11.5px; letter-spacing:.34em; text-transform:uppercase; color:var(--chrome);
-  text-shadow:0 0 10px rgba(201,163,94,.45); opacity:0; transition:opacity .45s var(--ease); pointer-events:none; white-space:nowrap; }
-#folder.opening .folder-openline{ opacity:1; }
 @media (prefers-reduced-motion:reduce){ #folder{ transition:none; } .folder-cover{ transition:none; } }
 
 /* =========================== MOTION =========================== */
@@ -389,7 +415,7 @@ html.rm .js .page{ opacity:1 !important; }
 
 /* =========================== PRINT =========================== */
 @media print{
-  #bg,#vig,#grain,#crt,#boot,#folder,.chrome,.pagefoot,#tip,#card,.pagetabs,.progress,.mobileStrip{ display:none !important; }
+  #bg,#vig,#grain,#crt,#boot,#opening,#folder,.chrome,.pagefoot,#tip,#card,.pagetabs,.progress,.mobileStrip{ display:none !important; }
   body{ background:#fff !important; color:#000 !important; }
   .reader{ max-width:none; margin:0; padding:0; }
   .sheet{ box-shadow:none; border:1px solid #ccc; border-radius:0; padding:20mm; margin:0; background:#fff !important; color:#000 !important; }
@@ -535,7 +561,6 @@ html.rm .js .page{ opacity:1 !important; }
       </div>
     </div>
     <div class="flap-shadow"></div>
-    <div class="folder-openline">OPENING DOCUMENT FILE…</div>
   </div>
 </div>
 
@@ -1154,7 +1179,7 @@ function boot(){
     done = true; Sound._done = true; clearInterval(clk); clearInterval(sideT); window.removeEventListener("keydown", skip);
     el.classList.add("gone"); Sound.close();
     setTimeout(function(){ if(el.parentNode) el.remove(); }, 1200);
-    setTimeout(function(){ stageFolder(); }, 1500);
+    setTimeout(function(){ stageOpening(1400); }, 1500);
   }
   function stageWelcome(){
     stepEl.textContent = "READY"; hint.textContent = ""; prog.style.width = "100%";
@@ -1168,7 +1193,23 @@ function boot(){
   function stageScreenOut(){
     el.classList.add("gone"); Sound.close();
     setTimeout(function(){ if(el.parentNode) el.remove(); }, 1250);
-    setTimeout(function(){ stageFolder(); }, 1750);
+    setTimeout(function(){ stageOpening(2200); }, 1750);
+  }
+  /* the black CRT "opening document" screen, then the folder opening onto the first page */
+  function stageOpening(hold){
+    if(document.getElementById("opening")) return;
+    var box = document.createElement("div");
+    box.id = "opening";
+    box.setAttribute("role","status"); box.setAttribute("aria-live","polite");
+    box.innerHTML = '<div class="op-inner"><div class="op-t">OPENING DOCUMENT FILE\u2026</div><div class="op-bar"><i></i></div></div>';
+    document.body.appendChild(box);
+    Sound.drv();
+    setTimeout(function(){
+      box.classList.add("out");
+      Sound.open();
+      setTimeout(function(){ if(box.parentNode) box.parentNode.removeChild(box); }, 850);
+      setTimeout(function(){ stageFolder(); }, 430);
+    }, hold || 2200);
   }
   /* the closed folder appears, then swings open onto the first page */
   function stageFolder(){
