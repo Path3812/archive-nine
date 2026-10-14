@@ -26,28 +26,29 @@
   --mono:ui-monospace,"Cascadia Mono","Consolas",Menlo,"SFMono-Regular","DejaVu Sans Mono",monospace;
   --serif:Georgia,"Iowan Old Style","Palatino Linotype","Times New Roman",serif;
   --fit-zoom:1;   /* reader scale so the whole sheet + folder frame fit the viewport */
+  --opendur:3s; --closedur:2s;   /* folder open / close animation length (shortened on low-end machines) */
 }
 *{ box-sizing:border-box; }
 html,body{ margin:0; padding:0; }
 html{ -webkit-text-size-adjust:100%; overflow-x:clip; }
 body{
   min-height:100%; color:var(--steel); font-family:var(--serif);
-  background:radial-gradient(130% 100% at 50% 8%, #171008 0%, #120d07 42%, var(--bg) 100%);
-  background-attachment:fixed;
+  background:var(--bg);
 }
 
 /* ---- 3D SCP Foundation logo + breathing glow ---- */
 #bg{
   position:fixed; inset:0; z-index:0; pointer-events:none;
   display:grid; place-items:center; perspective:1500px; perspective-origin:50% 47%;
+  background:radial-gradient(130% 100% at 50% 8%, #171008 0%, #120d07 42%, var(--bg) 100%);
   transition:transform .8s cubic-bezier(.22,.61,.36,1); will-change:transform;
 }
 #bg::after{
-  content:""; position:absolute; inset:0; pointer-events:none;
+  content:""; position:absolute; inset:0; pointer-events:none; will-change:opacity;
   background:radial-gradient(closest-side at 50% 50%, rgba(201,163,94,.16), rgba(180,140,70,.05) 46%, transparent 74%);
   animation:glowBreathe 7.5s var(--ease) infinite;
 }
-@keyframes glowBreathe{ 0%,100%{ opacity:.72; transform:scale(1); } 50%{ opacity:1; transform:scale(1.06); } }
+@keyframes glowBreathe{ 0%,100%{ opacity:.72; } 50%{ opacity:1; } }
 .plogo-defs{ position:absolute; width:0; height:0; overflow:hidden; }
 .plogo{ position:relative; width:min(80vmin,900px); aspect-ratio:1/1; transform-style:preserve-3d;
   animation:plogoSpin 46s linear infinite; will-change:transform; }
@@ -57,7 +58,7 @@ html.rm .plogo{ animation:none; }
 html.rm #bg::after{ animation:none; }
 
 /* ---- overlays: grain, deeper vignette, CRT scanlines + glitch ---- */
-#grain{ position:fixed; inset:-40%; z-index:60; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
+#grain{ position:fixed; inset:0; z-index:60; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 /* drifting dust motes in the light */
 #dust{ position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
@@ -70,9 +71,10 @@ html.rm #dust{ display:none; }
   background:radial-gradient(115% 88% at 50% 40%, transparent 32%, rgba(0,0,0,.62) 78%, rgba(0,0,0,.78) 100%); }
 #crt{ position:fixed; inset:0; z-index:41; pointer-events:none; opacity:.5; mix-blend-mode:soft-light;
   background:repeating-linear-gradient(0deg, rgba(201,163,94,.05) 0 1px, transparent 1px 3px); }
-#crt::after{ content:""; position:absolute; left:0; right:0; height:22vh;
-  background:linear-gradient(transparent, rgba(201,163,94,.045), transparent); animation:scanDrift 8s linear infinite; }
-@keyframes scanDrift{ from{ top:-24vh; } to{ top:104vh; } }
+#crt::after{ content:""; position:absolute; left:0; right:0; top:0; height:22vh; will-change:transform;
+  background:linear-gradient(transparent, rgba(201,163,94,.045), transparent);
+  transform:translateY(-24vh); animation:scanDrift 8s linear infinite; }
+@keyframes scanDrift{ from{ transform:translateY(-24vh); } to{ transform:translateY(104vh); } }
 html.glitch #crt{ animation:glitchShift .18s steps(2) 1; }
 @keyframes glitchShift{ 0%{ transform:translate(0,0); } 33%{ transform:translate(-2px,1px); } 66%{ transform:translate(2px,-1px); } 100%{ transform:translate(0,0); } }
 html.rm #crt::after{ animation:none; }
@@ -81,7 +83,7 @@ html.rm #crt::after{ animation:none; }
 .top{ position:relative; z-index:2; display:flex; align-items:center; gap:14px; padding:9px 16px;
   font-family:var(--mono); font-size:11.5px; letter-spacing:.13em; text-transform:uppercase;
   color:var(--steel-dim); background:linear-gradient(#171009f2,#130d07ee);
-  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); border-bottom:1px solid #2e2716; }
+  border-bottom:1px solid #2e2716; }
 .brand{ display:flex; align-items:center; gap:9px; color:var(--chrome); white-space:nowrap; }
 .glyph{ display:block; width:22px; height:22px; flex:0 0 22px; color:var(--chrome); filter:drop-shadow(0 0 6px rgba(201,163,94,.32)); }
 .boot-gate .seal .glyph{ width:38px; height:38px; }
@@ -150,7 +152,7 @@ button.chip:focus-visible{ outline:2px solid var(--chrome); outline-offset:1px; 
   padding:var(--pad-t) var(--pad-x) var(--pad-b);
   backface-visibility:hidden; -webkit-backface-visibility:hidden;
   background:linear-gradient(178deg,var(--paper),var(--paper-2)); border:1px solid var(--paper-edge); border-radius:3px;
-  box-shadow:0 0 0 1px rgba(188,171,128,.6); will-change:transform,filter; }
+  box-shadow:0 26px 60px -30px rgba(0,0,0,.8), 0 0 0 1px rgba(188,171,128,.6); will-change:transform; }
 /* fold shadow hugging the spine */
 .page.turning::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:64px; pointer-events:none;
   background:linear-gradient(90deg, rgba(40,28,10,.26), rgba(40,28,10,0)); border-radius:3px 0 0 3px; }
@@ -423,7 +425,7 @@ html.rm #opening .op-bar i{ animation:none; }
 .folder-page *{ pointer-events:none !important; }
 .folder-cover{ position:absolute; inset:0; z-index:3; transform-origin:left center; transform:rotateY(0deg);
   transform-style:preserve-3d; }
-#folder.opening .folder-cover{ transform:rotateY(-180deg); animation:coverOpen 3s cubic-bezier(.44,.02,.16,1) both; }
+#folder.opening .folder-cover{ transform:rotateY(-180deg); animation:coverOpen var(--opendur) cubic-bezier(.44,.02,.16,1) both; }
 @keyframes coverOpen{ 0%{ transform:rotateY(0deg); } 56%{ transform:rotateY(-187deg); } 74%{ transform:rotateY(-173deg); } 88%{ transform:rotateY(-182deg); } 100%{ transform:rotateY(-180deg); } }
 .fc-face, .fc-face-back{
   position:absolute; inset:0; border:1px solid #9c8a5e; border-radius:7px;
@@ -432,12 +434,7 @@ html.rm #opening .op-bar i{ animation:none; }
 .fc-face{ display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:6px; text-align:center; padding:34px; color:#3a2f18;
   box-shadow:0 40px 80px -30px #000, 0 2px 0 rgba(255,255,255,.35) inset; }
-/* a blade of light rakes across the cover as it swings open */
-.fc-face::after{ content:""; position:absolute; inset:0; border-radius:7px; pointer-events:none; opacity:0;
-  background:linear-gradient(115deg, transparent 34%, rgba(255,250,230,.6) 50%, rgba(255,250,230,.08) 58%, transparent 68%);
-  background-size:250% 100%; background-position:130% 0; }
-#folder.opening .fc-face::after{ animation:coverSheen 3s cubic-bezier(.44,.02,.16,1) both; }
-@keyframes coverSheen{ 0%{ background-position:130% 0; opacity:0; } 18%{ opacity:.85; } 66%{ opacity:.35; } 100%{ background-position:-40% 0; opacity:0; } }
+/* (the light-rake across the cover as it opens is intentionally omitted) */
 .fc-face-back{ transform:rotateY(180deg);
   background:linear-gradient(150deg,#ded0a2,#c6b688);
   box-shadow:0 40px 80px -30px #000, 0 0 0 1px rgba(120,100,60,.25) inset; }
@@ -450,17 +447,17 @@ html.rm #opening .op-bar i{ animation:none; }
 .fc-ref{ font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:#6b5a2e; margin-top:14px; }
 #folder .flap-shadow{ position:absolute; inset:0; z-index:2; transform-origin:left center; opacity:0;
   background:linear-gradient(90deg, rgba(0,0,0,.5), rgba(0,0,0,0) 62%); border-radius:7px; }
-#folder.opening .flap-shadow{ animation:flapDeep 3s cubic-bezier(.44,.02,.16,1) both; }
+#folder.opening .flap-shadow{ animation:flapDeep var(--opendur) cubic-bezier(.44,.02,.16,1) both; }
 @keyframes flapDeep{ 0%{ opacity:0; } 20%{ opacity:.94; } 55%{ opacity:.68; } 100%{ opacity:.26; } }
 /* ---- closing: the cover swings shut over the document, back to the closed folder ---- */
 #folder.closed .folder-cover{ transform:rotateY(0deg); }
-#folder.closing .folder-cover{ animation:coverClose 2s cubic-bezier(.4,.02,.14,1) both; }
+#folder.closing .folder-cover{ animation:coverClose var(--closedur) cubic-bezier(.4,.02,.14,1) both; }
 @keyframes coverClose{
   0%{ transform:rotateY(-180deg); }
   7%{ transform:rotateY(-186deg); }
   100%{ transform:rotateY(0deg); }
 }
-#folder.closing .flap-shadow{ animation:flapShut 2s cubic-bezier(.4,.02,.14,1) both; }
+#folder.closing .flap-shadow{ animation:flapShut var(--closedur) cubic-bezier(.4,.02,.14,1) both; }
 @keyframes flapShut{ 0%{ opacity:0; } 46%{ opacity:.5; } 100%{ opacity:0; } }
 @media (prefers-reduced-motion:reduce){ #folder{ transition:none; } .folder-cover{ transition:none; } }
 
@@ -486,6 +483,25 @@ html.rm #opening .op-bar i{ animation:none; }
 }
 html.rm *{ animation:none !important; transition:none !important; }
 html.rm .js .page{ opacity:1 !important; }
+/* shadow that sweeps across the page beneath a turning leaf (opacity-only: compositor-cheap) */
+.turnveil{ position:absolute; inset:0; border-radius:3px; pointer-events:none; opacity:0; z-index:4;
+  background:radial-gradient(140% 120% at 0% 50%, rgba(18,11,2,.5), rgba(18,11,2,0) 62%); }
+/* ---- performance tier: when the machine cannot hold a smooth frame, the perpetual
+   decoration is frozen and the blended full-screen overlays are composited plainly ---- */
+html.lite{ --opendur:1.4s; --closedur:1s; }
+html.lite .plogo{ animation:none; transform:rotateX(13deg) rotateY(-34deg); }
+html.lite #bg::after{ animation:none; }
+html.lite #crt::after{ animation:none; }
+html.lite #bg{ transition:none; }
+html.lite #dust{ display:none; }
+html.lite #grain{ mix-blend-mode:normal; opacity:.03; }
+html.lite #crt{ mix-blend-mode:normal; opacity:.32; }
+html.lite .boot-gate .seal{ animation:none; }
+html.lite #opening .op-bar i{ animation:none; }
+html.lite .page.turning::after{ animation:none; }
+html.lite.glitch #crt{ animation:none; }
+html.lite .sheet::before{ mix-blend-mode:normal; opacity:.06; }
+html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
 
 /* =========================== RESPONSIVE / MOBILE STRIP =========================== */
 .mobileStrip{ display:none; }
@@ -905,6 +921,31 @@ function reducedMotion(){
 }
 (function(){ if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches){ document.documentElement.classList.add("rm"); RM = true; } })();
 
+/* ---- performance tier ----
+   On a machine that cannot hold a smooth frame we freeze the perpetual ambient decoration
+   (spinning 3D mark, drifting scanline, dust) and composite the full-screen grain/CRT overlays
+   plainly, and play the boot/open sequences a little faster. A capable machine keeps everything. */
+var LITE = false;
+function setLite(){ if(LITE) return; LITE = true; document.documentElement.classList.add("lite"); }
+function initPerfTier(){
+  if(reducedMotion()) return;
+  try{
+    var hc = navigator.hardwareConcurrency, dm = navigator.deviceMemory;
+    if((typeof hc === "number" && hc > 0 && hc <= 2) || (typeof dm === "number" && dm > 0 && dm <= 2)){ setLite(); return; }
+  }catch(e){}
+  var dts = [], last = 0, warm = 0, t0 = 0;
+  function tick(ts){
+    if(!t0) t0 = ts;
+    if(last && !document.hidden){ var dt = ts - last; if(warm >= 2 && dt < 500) dts.push(dt); }
+    warm++; last = ts;
+    if(dts.length < 30 && warm < 130 && (ts - t0) < 2500){ window.requestAnimationFrame(tick); return; }
+    dts.sort(function(a, b){ return a - b; });
+    var med = dts.length ? dts[Math.floor(dts.length / 2)] : 999;
+    if(med > 24) setLite();   /* slower than ~40 fps: settle for the lighter ambience */
+  }
+  window.requestAnimationFrame(tick);
+}
+
 /* ------------------------------------------------------------------ utils */
 function esc(t){ return String(t).replace(/[&<>]/g, function(m){ return m === "&" ? "&amp;" : m === "<" ? "&lt;" : "&gt;"; }); }
 function escA(t){ return String(t).replace(/["'&<>]/g, function(m){ return m === '"' ? "&quot;" : m === "'" ? "&#39;" : m === "&" ? "&amp;" : m === "<" ? "&lt;" : "&gt;"; }); }
@@ -1190,22 +1231,20 @@ function turnTo(i){
   leaf.style.transformOrigin = "left center";
   leaf.style.transform = "rotateY(" + startRot + "deg)";
 
+  /* transform-only: the leaf rotates on the compositor (no per-frame blur or shadow repaint) */
   var anim = leaf.animate([
-    { transform:"rotateY(" + startRot + "deg)", boxShadow:"0 24px 60px -30px rgba(0,0,0,.8)", filter:"blur(0px) brightness(1)", offset:0 },
-    { transform:"rotateY(" + (startRot + (endRot - startRot) * 0.5) + "deg)", boxShadow:"-34px 16px 60px -22px rgba(0,0,0,.72)", filter:"blur(1.3px) brightness(1.05)", offset:0.5 },
-    { transform:"rotateY(" + endRot + "deg)",  boxShadow:"0 24px 60px -30px rgba(0,0,0,.8)", filter:"blur(0px) brightness(1)", offset:1 }
+    { transform:"rotateY(" + startRot + "deg)", offset:0 },
+    { transform:"rotateY(" + (startRot + (endRot - startRot) * 0.5) + "deg)", offset:0.5 },
+    { transform:"rotateY(" + endRot + "deg)",  offset:1 }
   ], { duration: 900, easing: "cubic-bezier(.36,.05,.2,1)", fill:"both" });
 
-  /* a shadow sweeps across the page lying beneath the turning leaf */
-  var beneathAnim = null;
-  var beneath = dir > 0 ? to : from;
-  if(beneath && beneath.animate){
-    beneathAnim = beneath.animate([
-      { filter:"brightness(1)", offset:0 },
-      { filter:"brightness(.72)", offset:0.5 },
-      { filter:"brightness(1)", offset:1 }
-    ], { duration: 900, easing: "cubic-bezier(.36,.05,.2,1)" });
-  }
+  /* the shadow that sweeps across the page lying beneath the turning leaf: a veil whose
+     opacity rises then falls — compositor-only, unlike a per-frame brightness filter */
+  var velEl = document.createElement("div"); velEl.className = "turnveil";
+  book.appendChild(velEl);
+  var beneathAnim = velEl.animate([
+    { opacity:0, offset:0 }, { opacity:1, offset:0.5 }, { opacity:0, offset:1 }
+  ], { duration: 900, easing: "cubic-bezier(.36,.05,.2,1)" });
   Sound.turn(dir);
 
   var finished = false;
@@ -1216,6 +1255,7 @@ function turnTo(i){
     leaf.classList.remove("turning","fwd","back");
     try{ anim.cancel(); }catch(e){}
     if(beneathAnim){ try{ beneathAnim.cancel(); }catch(e){} }
+    if(velEl && velEl.parentNode) velEl.parentNode.removeChild(velEl);
     leaf.style.transformOrigin = ""; leaf.style.transform = "";
   }
   navGuard = done;
@@ -1287,10 +1327,11 @@ function folderOpen(){
     f.setAttribute("aria-hidden","true");
     return;
   }
+  var openMs = LITE ? 1400 : 3000;
   f.classList.add("opening");
-  setTimeout(function(){ reveal(); }, 3200);
-  setTimeout(function(){ f.classList.add("gone"); }, 4200);
-  setTimeout(function(){ f.classList.remove("show","opening","gone"); f.setAttribute("aria-hidden","true"); }, 5200);
+  setTimeout(function(){ reveal(); }, openMs + 200);
+  setTimeout(function(){ f.classList.add("gone"); }, openMs + 1200);
+  setTimeout(function(){ f.classList.remove("show","opening","gone"); f.setAttribute("aria-hidden","true"); }, openMs + 2200);
 }
 function folderClose(){
   var f = document.getElementById("folder");
@@ -1312,15 +1353,16 @@ function folderClose(){
     folderArm();
     return;
   }
+  var closeMs = LITE ? 1000 : 2000;
   Sound.turn(-1);
   f.classList.add("show","closing");
-  setTimeout(function(){ Sound.close(); }, 1900);
+  setTimeout(function(){ Sound.close(); }, closeMs - 100);
   setTimeout(function(){
     f.classList.remove("closing");
     f.classList.add("closed");
     f.style.transition = ""; f.style.opacity = "";
     folderArm();
-  }, 2080);
+  }, closeMs + 80);
 }
 function initFolder(){
   var f = document.getElementById("folder");
@@ -1506,6 +1548,8 @@ function boot(){
   var out = document.getElementById("bootOut"), side = document.getElementById("bootSide"), stepEl = document.getElementById("bootStep");
   var prog = document.getElementById("bootProg"), meta = document.getElementById("bootMeta"), hint = document.getElementById("bootHint"), clock = document.getElementById("bootClock");
   var rm = reducedMotion(), done = false, i = 0, startedAt = 0;
+  /* on a low-end machine the whole boot is played faster so reading starts sooner */
+  function dur(ms){ return LITE ? Math.max(5, Math.round(ms * 0.55)) : ms; }
   function pad2(n){ return (n < 10 ? "0" : "") + n; }
   function hx(n){ var s = ""; for(var k = 0; k < n; k++) s += "0123456789ABCDEF"[Math.floor(Math.random() * 16)]; return s; }
   function clockNow(){ var d = new Date(); return pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ":" + pad2(d.getSeconds()); }
@@ -1668,8 +1712,8 @@ function boot(){
       case "prog": return prog.style.width = st.v + "%", cb();
       case "sound": if(Sound[st.s]) Sound[st.s](); return cb();
       case "grant": { var g = document.getElementById("sideGrant"); if(g) g.textContent = "GRANTED (OVERRIDE)"; return cb(); }
-      case "wait": return setTimeout(cb, rm ? 15 : st.dur);
-      case "line": line(st.s, st.c); return setTimeout(cb, rm ? 12 : (st.dur || 70));
+      case "wait": return setTimeout(cb, rm ? 15 : dur(st.dur));
+      case "line": line(st.s, st.c); return setTimeout(cb, rm ? 12 : dur(st.dur || 70));
       case "type": return typeLine(st, cb);
       case "bar": return barLine(st, cb);
       case "spin": return spinLine(st, cb);
@@ -1682,31 +1726,31 @@ function boot(){
     var s = st.s, j = 0;
     if(rm){ d.textContent = s; return setTimeout(cb, 16); }
     (function tick(){ if(done) return; j++; d.innerHTML = esc(s.slice(0, j)) + '<span class="caret"></span>'; if(j % 3 === 0) Sound.key();
-      if(j >= s.length){ d.textContent = s; return setTimeout(cb, 90); } setTimeout(tick, st.sp || 13); })();
+      if(j >= s.length){ d.textContent = s; return setTimeout(cb, dur(90)); } setTimeout(tick, dur(st.sp || 13)); })();
   }
   function barLine(st, cb){
     var d = document.createElement("div"); d.className = "boot-line"; out.appendChild(d); trim();
-    var w = 20, p = 0, dur = rm ? 0 : st.dur, hops = Math.max(1, Math.round(dur / 45));
+    var w = 20, p = 0, span = rm ? 0 : dur(st.dur), hops = Math.max(1, Math.round(span / 45));
     if(!rm && !done) Sound.drv();
     (function frame(){ if(done) return; p = Math.min(1, p + 1 / hops); var f = Math.round(p * w), bar = "";
       for(var k = 0; k < w; k++) bar += (k < f ? "\u2588" : "\u2591");
       var pct = Math.round(p * 100); pct = (pct < 10 ? "  " : pct < 100 ? " " : "") + pct;
       d.innerHTML = '<span class="bar">[' + bar + "] " + pct + '%</span> ' + esc(st.label);
-      if(p >= 1){ if(st.done) d.innerHTML = esc(st.done); return setTimeout(cb, rm ? 10 : 120); } setTimeout(frame, 45); })(0);
+      if(p >= 1){ if(st.done) d.innerHTML = esc(st.done); return setTimeout(cb, rm ? 10 : dur(120)); } setTimeout(frame, dur(45)); })(0);
   }
   function spinLine(st, cb){
     var d = document.createElement("div"); d.className = "boot-line" + (st.c ? " " + st.c : ""); out.appendChild(d); trim();
-    var frames = ["|", "/", "-", "\\"], f = 0, t0 = Date.now(), dur = rm ? 0 : st.dur;
+    var frames = ["|", "/", "-", "\\"], f = 0, t0 = Date.now(), span = rm ? 0 : dur(st.dur);
     if(!rm && !done) Sound.drv();
     (function frame(){ if(done) return; d.innerHTML = '<span class="bar">[' + frames[f++ % 4] + "]</span> " + esc(st.label) + (st.tail ? "  " + esc(st.tail) : "");
-      if(Date.now() - t0 >= dur){ d.innerHTML = esc(st.done || ("[ ok ] " + st.label)); Sound.relay(); return setTimeout(cb, rm ? 10 : 90); } setTimeout(frame, 80); })();
+      if(Date.now() - t0 >= span){ d.innerHTML = esc(st.done || ("[ ok ] " + st.label)); Sound.relay(); return setTimeout(cb, rm ? 10 : dur(90)); } setTimeout(frame, dur(80)); })();
   }
   function hexLine(st, cb){
     var d = document.createElement("div"); d.className = "boot-line dim"; out.appendChild(d); trim();
     var groups = st.groups || 8, frames = rm ? 1 : 7, f = 0;
     if(!rm && !done) Sound.data();
     (function frame(){ if(done) return; f++; var s = ""; for(var k = 0; k < groups; k++) s += (k ? " " : "") + hx(4);
-      d.textContent = (st.label ? st.label + "  " : "") + s; if(f >= frames) return setTimeout(cb, rm ? 10 : 100); setTimeout(frame, 70); })();
+      d.textContent = (st.label ? st.label + "  " : "") + s; if(f >= frames) return setTimeout(cb, rm ? 10 : dur(100)); setTimeout(frame, dur(70)); })();
   }
   function armAudio(){ function go(){ Sound.start(); window.removeEventListener("pointerdown", go); window.removeEventListener("keydown", go); } window.addEventListener("pointerdown", go); window.addEventListener("keydown", go); }
 
@@ -1790,6 +1834,7 @@ function initAtmosphere(){
   if(bgEl){
     var raf = 0, mx = 0, my = 0;
     window.addEventListener("mousemove", function(ev){
+      if(LITE) return;
       mx = ev.clientX / window.innerWidth - .5;
       my = ev.clientY / window.innerHeight - .5;
       if(raf) return;
@@ -1812,6 +1857,7 @@ function init(){
   Notes.init();
   initNav();
   initFolder();
+  initPerfTier();
   initGlitch();
   initAtmosphere();
   relayout();
