@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="color-scheme" content="dark">
-<title>Archive Nine · Internal Access Terminal — O5 Command Dossier</title>
+<title>Archive Nine · Access Terminal — O5 Command Dossier</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='9' fill='%230c0906'/%3E%3Ccircle cx='24' cy='24' r='19' fill='none' stroke='%23c9a35e' stroke-width='2'/%3E%3Ccircle cx='24' cy='24' r='14' fill='none' stroke='%23c9a35e' stroke-width='1.2'/%3E%3Ctext x='24' y='25' font-family='Georgia,serif' font-size='16' font-weight='700' fill='%23c9a35e' text-anchor='middle'%3EIX%3C/text%3E%3C/svg%3E">
 <script>document.documentElement.className += ' js';</script>
 <style>
@@ -165,6 +165,24 @@ button.chip:focus-visible{ outline:2px solid var(--chrome); outline-offset:1px; 
 @keyframes sheenFwd{ 0%{ background-position:140% 0; opacity:0; } 16%{ opacity:.9; } 60%{ opacity:.5; } 100%{ background-position:-50% 0; opacity:0; } }
 @keyframes sheenBack{ 0%{ background-position:-50% 0; opacity:0; } 40%{ opacity:.5; } 84%{ opacity:.9; } 100%{ background-position:140% 0; opacity:0; } }
 html.rm .page.turning::after{ animation:none !important; }
+/* The reverse of the turning leaf. It mirrors the leaf exactly (same box, same rotation
+   about the spine) so that when the front face passes 90° and is hidden, the sheet is
+   still there — you watch it travel the whole way instead of blinking out of existence.
+   It paints below the leaf (z-index 4) and above the page lying beneath it. */
+.leaf-back{ position:absolute; z-index:4; pointer-events:none; transform-origin:left center;
+  top:calc(-1 * var(--pad-t)); left:calc(-1 * var(--pad-x)); right:calc(-1 * var(--pad-x)); bottom:calc(-1 * var(--pad-b));
+  border:1px solid var(--paper-edge); border-radius:3px;
+  background:linear-gradient(178deg,var(--paper-2),var(--paper));
+  box-shadow:0 26px 60px -30px rgba(0,0,0,.8), 0 0 0 1px rgba(188,171,128,.6); }
+/* the fold shade near the spine (local left edge, which stays on the spine when it flips over) */
+.leaf-back::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:56px; border-radius:3px 0 0 3px;
+  background:linear-gradient(90deg, rgba(40,28,10,.24), rgba(40,28,10,0)); }
+.leaf-back::after{ content:""; position:absolute; inset:0; border-radius:3px; pointer-events:none; opacity:0;
+  background:linear-gradient(102deg, rgba(255,248,226,0) 30%, rgba(255,248,226,.42) 48%, rgba(255,244,208,.12) 57%, rgba(255,248,226,0) 74%);
+  background-size:240% 100%; background-position:140% 0; }
+.leaf-back.fwd::after{ animation:sheenFwd .9s cubic-bezier(.36,.05,.2,1) both; }
+.leaf-back.back::after{ animation:sheenBack .9s cubic-bezier(.36,.05,.2,1) both; }
+html.lite .leaf-back::after{ animation:none; }
 .pgno{ font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:#6d6142;
   text-align:right; margin-top:auto; padding-top:10px; border-top:1px solid rgba(183,169,132,.5); }
 
@@ -183,6 +201,9 @@ html.rm .page.turning::after{ animation:none !important; }
 .meta dd{ margin:0; font-size:14px; color:var(--ink); }
 .notice{ font-size:14.5px; line-height:1.6; color:#3a3225; border-left:3px solid var(--warn);
   background:rgba(168,53,38,.06); padding:14px 18px; margin:0 0 30px; }
+/* cover sign-off: a quiet issuing line under the abstract */
+.cover-signoff{ margin:2px 0 0; padding-top:14px; border-top:1px solid var(--rule); text-align:center;
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:#6d6142; line-height:1.9; }
 
 /* page body typography */
 .sec{ margin:0 0 30px; }
@@ -240,7 +261,9 @@ html.rm .page.turning::after{ animation:none !important; }
 
 /* table of contents */
 .contents{ list-style:none; margin:0; padding:0; }
-.contents li{ margin:0 0 2px; }
+.contents li{ margin:0 0 2px; padding:0; }
+/* the generic page bullet (—) must not appear in the contents list, and its 22px indent must not offset the rows */
+.contents li::before{ content:none; }
 .contents .go{ display:flex; gap:12px; align-items:baseline; width:100%; text-align:left; cursor:pointer;
   font:inherit; color:#2a2419; background:none; border:none; border-bottom:1px dotted rgba(150,130,80,.4);
   padding:8px 4px; }
@@ -326,7 +349,37 @@ html.rm .page.turning::after{ animation:none !important; }
 @keyframes breathe{ 50%{ box-shadow:0 0 62px -6px var(--chrome), 0 0 0 6px #130d07 inset; } }
 .boot-gate .g-t{ letter-spacing:.34em; text-transform:uppercase; color:var(--chrome); font-size:12px; }
 .boot-gate .g-s{ margin-top:8px; color:var(--steel-dim); font-size:11px; letter-spacing:.1em; }
-.boot-gate .g-p{ margin-top:22px; letter-spacing:.24em; text-transform:uppercase; color:var(--steel); animation:blink 1.15s steps(1) infinite; }
+.boot-gate .g-p{ display:inline-block; margin-top:24px; padding:9px 3px 11px;
+  font-family:var(--mono); font-size:12px; font-weight:400; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--chrome); background:none; border:0; border-bottom:1px solid rgba(201,163,94,.45);
+  cursor:pointer; text-shadow:0 0 10px rgba(201,163,94,.35); }
+/* a command-line prompt: "> PRESS HERE TO OPEN TERMINAL ▊" with a blinking block caret */
+.boot-gate .g-p::before{ content:"\003E\00a0"; color:var(--chrome-2); }
+.boot-gate .g-p::after{ content:""; display:inline-block; width:.62em; height:1.05em; margin-left:.5em;
+  vertical-align:-.14em; background:var(--chrome); box-shadow:0 0 10px -2px var(--chrome);
+  animation:blink 1.05s steps(1) infinite; }
+.boot-gate .g-p:hover{ color:#e8cd8f; border-bottom-color:var(--chrome); text-shadow:0 0 16px rgba(201,163,94,.65); }
+.boot-gate .g-p:focus-visible{ outline:1px solid var(--chrome-2); outline-offset:7px; color:#e8cd8f; }
+/* boot file index: one readable record, every other Council seat sealed */
+.boot-pick{ width:100%; max-width:620px; margin:0 auto; text-align:left; }
+.boot-pick .bp-h{ letter-spacing:.24em; text-transform:uppercase; color:var(--chrome); font-size:11.5px; }
+.boot-pick .bp-s{ color:var(--steel-dim); font-size:11px; letter-spacing:.05em; line-height:1.4; margin:6px 0 12px; }
+.seat-list{ list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fit,minmax(184px,1fr)); gap:2px 20px; }
+.seat{ min-width:0; line-height:1.15; }
+.seat.sealed{ display:flex; align-items:center; gap:10px; padding:4px 8px; opacity:.62; }
+.seat-n{ flex:0 0 42px; color:var(--chrome-2); font-size:11.5px; letter-spacing:.1em; }
+.seat-rd{ height:9px; border-radius:1px; background:#0c0905; border:1px solid rgba(201,163,94,.3); box-shadow:0 0 6px -2px #000 inset; }
+.seat-rd.w1{ flex:0 0 42px; }
+.seat-rd.w2{ flex:1 1 auto; }
+.seat-g{ flex:0 0 auto; font-size:9px; letter-spacing:.2em; color:var(--steel-dim); }
+.seat-btn{ display:flex; align-items:center; gap:10px; width:100%; padding:4px 8px; font:inherit; line-height:1.15; text-align:left;
+  color:var(--chrome); background:rgba(201,163,94,.08); border:1px solid var(--chrome-2); border-radius:2px;
+  cursor:pointer; box-shadow:0 0 22px -12px var(--chrome); }
+.seat-btn .seat-t{ flex:1 1 auto; min-width:0; color:var(--steel); font-size:11px; letter-spacing:.04em;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.seat-btn .seat-g{ color:var(--chrome); }
+.seat-btn:hover, .seat-btn:focus-visible{ background:rgba(201,163,94,.18); border-color:var(--chrome); outline:none; box-shadow:0 0 26px -8px var(--chrome); }
+.boot-pick .bp-f{ margin-top:11px; padding-top:8px; border-top:1px solid #28200f; color:var(--steel-dim); font-size:9.5px; letter-spacing:.2em; text-transform:uppercase; }
 .boot-body.solo{ grid-template-columns:minmax(0,1fr); }
 .boot-body.solo .boot-side{ display:none; }
 .boot-log.center{ justify-content:center; }
@@ -426,7 +479,7 @@ html.rm #opening .op-bar i{ animation:none; }
 .folder-cover{ position:absolute; inset:0; z-index:3; transform-origin:left center; transform:rotateY(0deg);
   transform-style:preserve-3d; }
 #folder.opening .folder-cover{ transform:rotateY(-180deg); animation:coverOpen var(--opendur) cubic-bezier(.44,.02,.16,1) both; }
-@keyframes coverOpen{ 0%{ transform:rotateY(0deg); } 56%{ transform:rotateY(-187deg); } 74%{ transform:rotateY(-173deg); } 88%{ transform:rotateY(-182deg); } 100%{ transform:rotateY(-180deg); } }
+@keyframes coverOpen{ 0%{ transform:rotateY(0deg); } 100%{ transform:rotateY(-180deg); } }
 .fc-face, .fc-face-back{
   position:absolute; inset:0; border:1px solid #9c8a5e; border-radius:7px;
   -webkit-backface-visibility:hidden; backface-visibility:hidden;
@@ -445,10 +498,8 @@ html.rm #opening .op-bar i{ animation:none; }
 .fc-rule{ width:64%; height:1px; background:rgba(90,74,34,.5); margin:14px 0; }
 .fc-sub{ font-family:var(--serif); font-size:14px; color:#4a3c1c; max-width:82%; }
 .fc-ref{ font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:#6b5a2e; margin-top:14px; }
-#folder .flap-shadow{ position:absolute; inset:0; z-index:2; transform-origin:left center; opacity:0;
-  background:linear-gradient(90deg, rgba(0,0,0,.5), rgba(0,0,0,0) 62%); border-radius:7px; }
-#folder.opening .flap-shadow{ animation:flapDeep var(--opendur) cubic-bezier(.44,.02,.16,1) both; }
-@keyframes flapDeep{ 0%{ opacity:0; } 20%{ opacity:.94; } 55%{ opacity:.68; } 100%{ opacity:.26; } }
+/* (the inner fold shadow that used to flash across the document as the cover opened is
+   intentionally omitted — the cover simply swings open and lies down on the left) */
 /* ---- closing: the cover swings shut over the document, back to the closed folder ---- */
 #folder.closed .folder-cover{ transform:rotateY(0deg); }
 #folder.closing .folder-cover{ animation:coverClose var(--closedur) cubic-bezier(.4,.02,.14,1) both; }
@@ -457,8 +508,7 @@ html.rm #opening .op-bar i{ animation:none; }
   7%{ transform:rotateY(-186deg); }
   100%{ transform:rotateY(0deg); }
 }
-#folder.closing .flap-shadow{ animation:flapShut var(--closedur) cubic-bezier(.4,.02,.14,1) both; }
-@keyframes flapShut{ 0%{ opacity:0; } 46%{ opacity:.5; } 100%{ opacity:0; } }
+/* (the inner fold shadow that used to flash as the cover closed is likewise omitted) */
 @media (prefers-reduced-motion:reduce){ #folder{ transition:none; } .folder-cover{ transition:none; } }
 
 /* =========================== MOTION =========================== */
@@ -627,7 +677,7 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
 <header class="top" role="banner">
   <div class="brand">
     <svg class="glyph" aria-hidden="true" focusable="false" role="img" aria-label="Archive Nine roundel"><use href="#anRoundel"/></svg>
-    <span class="bname">ARCHIVE&nbsp;NINE · INTERNAL&nbsp;ACCESS&nbsp;TERMINAL</span>
+    <span class="bname">ARCHIVE&nbsp;NINE · ACCESS&nbsp;TERMINAL</span>
   </div>
   <div class="spacer"></div>
   <button type="button" class="chip btn" id="btnContents" title="Table of contents">☰ Contents</button>
@@ -683,7 +733,6 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
       </div>
       <div class="fc-face-back"></div>
     </div>
-    <div class="flap-shadow"></div>
   </div>
 </div>
 
@@ -691,7 +740,7 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
 <div id="boot">
   <div class="boot-frame">
     <div class="boot-bar">
-      <span class="bb-l"><span class="lamp"></span>ARCHIVE NINE INTERNAL ACCESS</span>
+      <span class="bb-l"><span class="lamp"></span>ARCHIVE NINE ACCESS TERMINAL</span>
       <span class="bb-c" id="bootStep">INITIALIZING</span>
       <span class="bb-r" id="bootClock">--:--:--</span>
     </div>
@@ -729,7 +778,14 @@ window.AN_CONTENT = {
     fileReference:"O5CD-04",
     revision:"8",
     lastReviewed:"2026-10-12",
-    notice:"Access is limited to members of Archive Nine and to persons the Group Leader has authorized. Do not copy, transmit, or reproduce this file. Do not discuss its contents with anyone. Do not open it in a public place, on shared equipment, or over any network you do not control. Unauthorized disclosure is [REDACTED]."
+    notice:"Access is limited to members of Archive Nine and to persons the Group Leader has authorized. Do not copy, transmit, or reproduce this file. Do not discuss its contents with anyone. Do not open it in a public place, on shared equipment, or over any network you do not control. Unauthorized disclosure is [REDACTED].",
+    scope:"One Council seat, and the reports gathered about it",
+    heldBy:"Archive Nine · the Group archive",
+    coverAbstract:[
+      "This file records what Archive Nine holds in respect of the Council seat designated O5-4, and in respect of the group of activities gathered under the provisional designation Group-██████. It is an inventory of material, and not an assessment of a person.",
+      "Nothing here is written from the subject’s side of the table. We do not hold her testimony, her records, or her correspondence. Where the file appears to describe her, it describes instead the traces she has left, and the accounts of those who believe they have seen her."
+    ],
+    coverSignoff:"Compiled by the compilation team of Archive Nine · issued under the authority of the Group Leader · held in the Group archive and reviewed at each revision"
   },
 
   /* File pages, in order. kind: cover | intro | toc | section | custody | admin */
@@ -737,7 +793,8 @@ window.AN_CONTENT = {
     { id:"cover",   tab:"Cover",    label:"Cover",             kind:"cover" },
     { id:"intro",   tab:"Intro",    label:"Introduction",      kind:"intro",   title:"Introduction",
       blocks:[
-        { t:"p", x:"Archive Nine exists to keep watch upon a single seat. This file is the record of what that watch has yielded. It has been assembled from material gathered by members of the Group — recovered documents, testimony, and photographic findings — and each entry was admitted only after it had been checked against the source from which it was said to derive." },
+        { t:"p", x:"Archive Nine exists to keep watch upon the Council. This file is the record of what that watch has yielded in respect of one of its seats, and in respect of a group of activities that has been reported in connection with more than one. It has been assembled from material gathered by members of the Group — recovered documents, testimony, and photographic findings — and each entry was admitted only after it had been checked against the source from which it was said to derive." },
+        { t:"p", x:"That the matter is not confined to a single seat is now clear to us, and we state it plainly. The same group has been reported in connection with more than one seat of the Council; how many we cannot say, and we do not set down which. Those reports reach us by different routes and at different removes, and several are second-hand at more than one stage. We have not been able to establish whether they describe a single body, or several that have been conflated in the telling. The Group has not yet revisited the terms of its remit, and this file records the fact of the agreement rather than a theory to explain it." },
         { t:"p", x:"Nothing in this file is tendered as fact. Where an entry rests upon a single source, the file says so. Where two sources are in conflict, both are recorded and neither is preferred. Where a name, a date, or a designation could not be recovered, the file states plainly that it could not be recovered, and declines to supply a substitute." },
         { t:"p", x:"The Group's remit is deliberately narrow. We were constituted to observe, to record, and to corroborate — not to intervene, and not to conclude. Every section that follows is therefore an inventory of what is held and of the confidence that may be placed in it, rather than an argument for any particular reading." },
         { t:"p", x:"Entries are revised as verified material arrives, and upon no other occasion. Sections are numbered for ease of reference; those appendices which record the file's own handling are administrative in character, and carry no assessment of the subject. The file is retained for internal circulation within Archive Nine and is not a registered Foundation document; it derives its authority from the Group alone." },
@@ -1060,8 +1117,16 @@ function renderPage(p, i, total){
     inner += metaRow("File Reference", esc(m.fileReference));
     inner += metaRow("Revision", esc(m.revision));
     inner += metaRow("Last Reviewed", esc(m.lastReviewed));
+    inner += metaRow("Scope", inline(m.scope));
+    inner += metaRow("Held By", inline(m.heldBy));
     inner += '</dl></header>';
     inner += '<div class="notice">' + inline(m.notice) + '</div>';
+    if(m.coverAbstract && m.coverAbstract.length){
+      inner += '<section class="sec"><h2>Abstract</h2><div class="blocks">';
+      m.coverAbstract.forEach(function(t){ inner += '<p>' + inline(t) + '</p>'; });
+      inner += '</div></section>';
+    }
+    if(m.coverSignoff) inner += '<div class="cover-signoff">' + inline(m.coverSignoff) + '</div>';
   } else if(p.kind === "toc"){
     inner += '<section class="sec"><h2>' + esc(p.title) + '</h2><div class="blocks">' + contentsList() + '</div></section>';
   } else if(p.kind === "section"){
@@ -1241,6 +1306,19 @@ function turnTo(i){
     { transform:"rotateY(" + endRot + "deg)",  offset:1 }
   ], { duration: 900, easing: "cubic-bezier(.36,.05,.2,1)", fill:"both" });
 
+  /* the leaf's reverse: an identical paper leaf riding the same rotation, so the sheet stays
+     in view after the front face passes 90deg instead of vanishing (it is layered beneath
+     the turning leaf and above the page lying open below it) */
+  var backEl = document.createElement("div");
+  backEl.className = "leaf-back " + (dir > 0 ? "fwd" : "back");
+  backEl.setAttribute("aria-hidden","true");
+  book.appendChild(backEl);
+  var backAnim = backEl.animate([
+    { transform:"rotateY(" + startRot + "deg)", offset:0 },
+    { transform:"rotateY(" + (startRot + (endRot - startRot) * 0.5) + "deg)", offset:0.5 },
+    { transform:"rotateY(" + endRot + "deg)",  offset:1 }
+  ], { duration: 900, easing: "cubic-bezier(.36,.05,.2,1)", fill:"both" });
+
   /* the shadow that sweeps across the page lying beneath the turning leaf: a veil whose
      opacity rises then falls — compositor-only, unlike a per-frame brightness filter */
   var velEl = document.createElement("div"); velEl.className = "turnveil";
@@ -1258,7 +1336,9 @@ function turnTo(i){
     leaf.classList.remove("turning","fwd","back");
     try{ anim.cancel(); }catch(e){}
     if(beneathAnim){ try{ beneathAnim.cancel(); }catch(e){} }
+    if(backAnim){ try{ backAnim.cancel(); }catch(e){} }
     if(velEl && velEl.parentNode) velEl.parentNode.removeChild(velEl);
+    if(backEl && backEl.parentNode) backEl.parentNode.removeChild(backEl);
     leaf.style.transformOrigin = ""; leaf.style.transform = "";
   }
   navGuard = done;
@@ -1584,7 +1664,63 @@ function boot(){
     out.innerHTML = '<div class="boot-welcome"><div class="w-big">WELCOME</div><div class="w-op"><span>OPERATOR</span><span class="w-redact"></span></div><div class="w-sub">identity not on record \u00b7 session logged</div></div>';
     Sound.ok();
     setTimeout(function(){ var w = out.querySelector(".boot-welcome"); if(w) w.classList.add("redact-in"); Sound.stamp(); }, 1050);
-    setTimeout(stageScreenOut, 3400);
+    setTimeout(stageSelect, 3400);
+  }
+  /* the file index: the terminal holds one readable record; every other seat is sealed */
+  function seatMenuHTML(){
+    var rows = "";
+    for(var n = 1; n <= 13; n++){
+      if(n === 4){
+        rows += '<li class="seat open"><button type="button" class="seat-btn" data-pick="O5-4">'
+              + '<span class="seat-n">O5-4</span><span class="seat-t">O5 Command Dossier</span>'
+              + '<span class="seat-g">OPEN</span></button></li>';
+      } else {
+        rows += '<li class="seat sealed"><span class="seat-rd w1" aria-hidden="true"></span>'
+              + '<span class="seat-rd w2" aria-hidden="true"></span><span class="seat-g">SEALED</span></li>';
+      }
+    }
+    return '<div class="boot-pick">'
+         + '<div class="bp-h">File Index \u00b7 Council Seats</div>'
+         + '<div class="bp-s">One record is held at this clearance. Sealed entries are not held by this terminal.</div>'
+         + '<ul class="seat-list">' + rows + '</ul>'
+         + '<div class="bp-f">Select a record to open \u00b7 read-only</div>'
+         + '</div>';
+  }
+  function stageSelect(){
+    stepEl.textContent = "FILE INDEX"; prog.style.width = "100%"; hint.textContent = "select a record to open";
+    /* while the index is open the boot can no longer be skipped with a stray click or keypress */
+    el.removeEventListener("click", skip); window.removeEventListener("keydown", skip);
+    out.classList.add("center");
+    out.innerHTML = seatMenuHTML();
+    Sound.relay();
+    var menu = out.querySelector(".boot-pick");
+    if(menu) menu.addEventListener("click", function(ev){
+      var b = ev.target.closest ? ev.target.closest("[data-pick]") : null;
+      if(b) pick(b.getAttribute("data-pick"));
+    });
+    var first = out.querySelector("[data-pick]");
+    if(first){ try{ first.focus({ preventScroll:true }); }catch(e){ first.focus(); } }
+    function onKey(ev){
+      if(ev.key !== "Enter" && ev.key !== " " && ev.key !== "Spacebar") return;
+      ev.preventDefault();
+      var b = out.querySelector("[data-pick]"); if(b) b.click();
+    }
+    window.addEventListener("keydown", onKey);
+    var picked = false;
+    function pick(id){
+      if(picked) return; picked = true;
+      window.removeEventListener("keydown", onKey);
+      var req = document.getElementById("sideReq"); if(req) req.textContent = id;
+      Sound.ok(); Sound.stamp();
+      stepEl.textContent = "OPEN";
+      out.classList.remove("center");
+      out.innerHTML = "";
+      line("      request      " + id + "  \u00b7  O5 Command Dossier", "dim");
+      line("      policy       GRANTED (OVERRIDE)  \u00b7  read-only", "dim");
+      line(id + "  \u00b7  ARCHIVE NINE  \u00b7  FILE RELEASED", "banner");
+      line("opening file ...", "ok");
+      setTimeout(stageScreenOut, rm ? 200 : 1100);
+    }
   }
   function stageScreenOut(){
     el.classList.add("gone"); Sound.close();
@@ -1626,7 +1762,7 @@ function boot(){
       '<div class="row"><span>Digest</span><b>SHA-256</b></div>' +
       '<div class="row"><span>Nonce</span><b data-live="nonce" aria-live="polite">------</b></div>' +
       '<div class="sh" style="margin-top:14px">Access</div>' +
-      '<div class="row"><span>Requested</span><b>O5CD-04</b></div>' +
+      '<div class="row"><span>Requested</span><b id="sideReq">PENDING</b></div>' +
       '<div class="row"><span>Policy</span><b id="sideGrant">PENDING</b></div>' +
       '<div class="row"><span>Audit</span><b data-live="audit" aria-live="polite">------</b></div>';
   }
@@ -1643,7 +1779,7 @@ function boot(){
 
   var seq = [
     {p:"step", s:"BOOT"},
-    {p:"line", s:"A.N. INTERNAL ACCESS TERMINAL  \u00b7  build 0.9.14", c:"banner"},
+    {p:"line", s:"A.N. ACCESS TERMINAL  \u00b7  build 0.9.14", c:"banner"},
     {p:"line", s:"(c) ARCHIVE NINE ARCHIVAL SYSTEMS \u2014 internal circulation", c:"dim"},
     {p:"wait", dur:160},
     {p:"type", s:"POST  cpu   archive-1 .......... ok", c:"dim", sp:9},
@@ -1669,7 +1805,7 @@ function boot(){
     {p:"step", s:"AUTHORIZE"},
     {p:"prog", v:42},
     {p:"type", s:"evaluating access policy .......", c:"dim", sp:9},
-    {p:"line", s:"      request      O5CD-04  (this dossier)", c:"dim"},
+    {p:"line", s:"      request      \u2014  awaiting selection", c:"dim"},
     {p:"line", s:"      clearance    none on record", c:"warn"},
     {p:"line", s:"      policy       DENY \u2192 fallback OVERRIDE", c:"warn"},
     {p:"sound", s:"warn"},
@@ -1705,8 +1841,8 @@ function boot(){
     {p:"grant"},
     {p:"wait", dur:220},
     {p:"line", s:"", c:""},
-    {p:"line", s:"O5CD-04  \u00b7  ARCHIVE NINE  \u00b7  ACCESS GRANTED", c:"banner"},
-    {p:"line", s:"access granted \u00b7 opening file ...", c:"ok"}
+    {p:"line", s:"ARCHIVE NINE  \u00b7  SESSION ACCESS GRANTED", c:"banner"},
+    {p:"line", s:"session established \u00b7 file index available", c:"ok"}
   ];
   function next(){ if(done) return; if(i >= seq.length){ setTimeout(finish, 460); return; } var st = seq[i++]; run(st, next); }
   function run(st, cb){
@@ -1761,19 +1897,29 @@ function boot(){
   renderSide(); meta.textContent = "SESSION " + SID;
   (function showGate(){
     stepEl.textContent = "STANDBY";
-    out.innerHTML = '<div class="boot-gate"><div class="seal"></div><div class="g-t">Archive Nine</div><div class="g-s">Internal Access Terminal \u00b7 O5CD-04</div><div class="g-s">Local offline session \u00b7 Operator authentication required</div><div class="g-p">click or press any key to begin session</div></div>';
+    out.innerHTML = '<div class="boot-gate"><div class="seal"></div><div class="g-t">Archive Nine</div><div class="g-s">Access Terminal \u00b7 no record selected</div><div class="g-s">Local offline session \u00b7 Operator authentication required</div><button class="g-p" id="gateBtn" type="button">Press here to open terminal</button></div>';
     var gsl = out.querySelector(".boot-gate .seal"), gsrc = document.querySelector(".brand .glyph");
     if(gsl && gsrc) gsl.appendChild(gsrc.cloneNode(true));
+    var gateBtn = out.querySelector("#gateBtn");
     hint.textContent = "audio on";
     var open = false;
-    function go(){
+    function go(ev){
       if(open) return; open = true;
-      window.removeEventListener("pointerdown", go); window.removeEventListener("keydown", go);
+      if(ev && ev.stopPropagation) ev.stopPropagation();
+      if(gateBtn) gateBtn.removeEventListener("click", go);
+      window.removeEventListener("keydown", go);
       Sound.start(); Sound.relay(); Sound.beep(880);
       startedAt = Date.now(); out.innerHTML = ""; hint.textContent = "click or press any key to skip";
-      el.addEventListener("click", skip); window.addEventListener("keydown", skip); next();
+      /* attach the skip handlers only after this event has finished dispatching, so the same
+         press that opened the terminal does not also skip the boot sequence */
+      setTimeout(function(){ el.addEventListener("click", skip); window.addEventListener("keydown", skip); }, 0);
+      next();
     }
-    window.addEventListener("pointerdown", go); window.addEventListener("keydown", go);
+    if(gateBtn){
+      gateBtn.addEventListener("click", go);
+      /* the gate must be pressed on the control itself; keyboard users can focus it and press Enter */
+      try{ gateBtn.focus({ preventScroll:true }); }catch(e){ gateBtn.focus(); }
+    }
   })();
 }
 function reveal(){
