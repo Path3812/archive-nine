@@ -160,6 +160,17 @@ button.chip:focus-visible{ outline:2px solid var(--chrome); outline-offset:1px; 
 .page.turning::after{ content:""; position:absolute; inset:0; border-radius:3px; pointer-events:none; opacity:0;
   background:linear-gradient(102deg, rgba(255,248,226,0) 30%, rgba(255,248,226,.55) 48%, rgba(255,244,208,.14) 57%, rgba(255,248,226,0) 74%);
   background-size:240% 100%; background-position:140% 0; }
+
+/* Stack riffle: the flipping leaf shows layered page edges on its leading side.
+   Each edge represents one sheet in the jump; more pages = more visible edges.
+   Forward flip: edges on the RIGHT side (the leading edge as it folds left).
+   Backward flip: edges on the LEFT side (the leading edge as it folds right). */
+.page.turning.stack .stack-edges{ position:absolute; top:0; bottom:0; width:12px; pointer-events:none; }
+.page.turning.stack.fwd .stack-edges{ right:0; border-radius:0 3px 3px 0; }
+.page.turning.stack.back .stack-edges{ left:0; border-radius:3px 0 0 3px; }
+.page.turning.stack .stack-edges i{ position:absolute; top:0; bottom:0; width:2px;
+  background:linear-gradient(178deg, var(--paper-2), var(--paper));
+  border-left:1px solid var(--paper-edge); opacity:0.6; }
 .page.turning.fwd::after{ animation:sheenFwd .9s cubic-bezier(.36,.05,.2,1) both; }
 .page.turning.back::after{ animation:sheenBack .9s cubic-bezier(.36,.05,.2,1) both; }
 @keyframes sheenFwd{ 0%{ background-position:140% 0; opacity:0; } 16%{ opacity:.9; } 60%{ opacity:.5; } 100%{ background-position:-50% 0; opacity:0; } }
@@ -1321,8 +1332,8 @@ function scheduleRelayout(){ if(_rt) clearTimeout(_rt); _rt = setTimeout(relayou
 
    Holding a key does nothing (key repeat is ignored by initNav). */
 var RIFFLE = (function(){
-  var m = location.search.match(/[?&]riffle=(fast|bundled)\b/i);
-  return m ? m[1].toLowerCase() : "fast";
+  var m = location.search.match(/[?&]riffle=(stack|bundled)\b/i);
+  return m ? m[1].toLowerCase() : "stack";
 })();
 var turnQueue = { active:false, target:null, timer:0, settle:null, extras:[] };
 
@@ -1367,29 +1378,16 @@ function turnJump(i){
   var dist = Math.abs(i - current);
   var dir  = i > current ? 1 : -1;
   if(dist === 1){ turnStep(dir); return; }     /* a neighbour is just a step */
-  if(RIFFLE === "fast") fastRiffle(i, dist); else bundledRiffle(i, dist);
+  if(RIFFLE === "stack") stackRiffle(i, dist); else bundledRiffle(i, dist);
 }
 
-/* fast riffle: one leaf per beat, the beat shorter the further we have to travel
-   (≈1.5s for a long haul instead of the old ~6s crawl) */
-function fastRiffle(i, dist){
-  var beat = dist >= 8 ? 170 : dist >= 5 ? 210 : dist >= 3 ? 280 : 360;
+/* stack riffle: one flip that lands directly on the target.
+   The flipping leaf shows layered page edges on its leading side — the more pages
+   jumped, the more edges are visible. Duration scales with distance. */
+function stackRiffle(i, dist){
+  var dur = 640 + dist * 55; if(dur < 760) dur = 760; else if(dur > 1080) dur = 1080;
   turnQueue.active = true; turnQueue.target = i;
-  chainTurn(beat);
-}
-function chainTurn(beat){
-  var t = turnQueue.target;
-  if(t === null || t === current){ turnQueue.target = null; turnQueue.active = false; return; }
-  var dir  = t > current ? 1 : -1;
-  var more = (t - (current + dir)) !== 0;      /* further steps follow this one: keep it brisk */
-  turnQueue.active = true;
-  doTurn(current + dir, dir, more, function(){
-    if(turnQueue.target !== null && turnQueue.target !== current){
-      turnQueue.timer = setTimeout(function(){ turnQueue.timer = 0; chainTurn(beat); }, more ? 25 : 0);
-    } else {
-      turnQueue.target = null; turnQueue.active = false;
-    }
-  }, more ? beat : Math.round(beat * 1.6));
+  doTurn(i, i > current ? 1 : -1, false, function(){ turnQueue.target = null; turnQueue.active = false; }, dur, 0, dist);
 }
 
 /* bundled riffle: the whole jump is one arc, with several sheets thrown a beat behind
@@ -1402,7 +1400,7 @@ function bundledRiffle(i, dist){
   doTurn(i, i > current ? 1 : -1, false, function(){ turnQueue.target = null; turnQueue.active = false; }, dur, bundle);
 }
 
-function doTurn(i, dir, chained, cb, durOverride, bundle){
+function doTurn(i, dir, chained, cb, durOverride, bundle, stackDist){
   var from = document.getElementById("page-" + C.pages[current].id);
   var to   = document.getElementById("page-" + C.pages[i].id);
 
@@ -1430,8 +1428,27 @@ function doTurn(i, dir, chained, cb, durOverride, bundle){
   }
 
   leaf.classList.add("turning", dir > 0 ? "fwd" : "back");
+  if(stackDist && stackDist > 1) leaf.classList.add("stack");
   leaf.style.transformOrigin = "left center";
   leaf.style.transform = "rotateY(" + startRot + "deg)";
+
+  /* stack riffle: inject layered page edges on the leading edge of the flipping leaf */
+  var stackEdges = null;
+  if(stackDist && stackDist > 1){
+    stackEdges = document.createElement("div");
+    stackEdges.className = "stack-edges";
+    var edgeCount = stackDist > 12 ? 12 : stackDist;           /* cap at 12 visible edges */
+    var edgeWidth = 2, gap = 1;                                 /* 2px edge, 1px gap */
+    var totalW = edgeCount * edgeWidth + (edgeCount - 1) * gap;
+    var startX = dir > 0 ? -totalW : 0;                          /* fwd: edges on right (outside), back: on left */
+    for(var e = 0; e < edgeCount; e++){
+      var edge = document.createElement("i");
+      edge.style.left = (startX + e * (edgeWidth + gap)) + "px";
+      edge.style.width = edgeWidth + "px";
+      stackEdges.appendChild(edge);
+    }
+    leaf.appendChild(stackEdges);
+  }
 
   var dur  = durOverride || (chained ? 620 : 900);
   var ease = "cubic-bezier(.36,.05,.2,1)";
@@ -1489,8 +1506,9 @@ function doTurn(i, dir, chained, cb, durOverride, bundle){
     if(finished) return; finished = true;
     if(turnQueue.settle === done) turnQueue.settle = null;
     clearExtras();                        /* drop any bundled sheets still in the air */
+    if(stackEdges && stackEdges.parentNode) stackEdges.parentNode.removeChild(stackEdges);
     if(dir < 0) from.classList.remove("active");
-    leaf.classList.remove("turning","fwd","back");
+    leaf.classList.remove("turning","fwd","back","stack");
     try{ anim.cancel(); }catch(e){}
     if(beneathAnim){ try{ beneathAnim.cancel(); }catch(e){} }
     if(backAnim){ try{ backAnim.cancel(); }catch(e){} }
