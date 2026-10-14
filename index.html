@@ -1315,14 +1315,14 @@ function scheduleRelayout(){ if(_rt) clearTimeout(_rt); _rt = setTimeout(relayou
 
      · a JUMP (a Contents entry, a tab, Home/End): the file riffles through the pages
        to the one asked for. How that travel looks is chosen with a URL flag,
-       ?riffle=bundled (default) or ?riffle=fast. Bundled throws several sheets at once
-       across one arc; fast runs one leaf per beat with the beat shortened to the
-       distance, so a long jump does not crawl. Both land on the pile the same way.
+       ?riffle=fast (default) or ?riffle=bundled. Fast runs one leaf per beat with the
+       beat shortened to the distance, so a long jump does not crawl; bundled throws
+       several sheets at once across one arc. Both land on the pile the same way.
 
    Holding a key does nothing (key repeat is ignored by initNav). */
 var RIFFLE = (function(){
   var m = location.search.match(/[?&]riffle=(fast|bundled)\b/i);
-  return m ? m[1].toLowerCase() : "bundled";
+  return m ? m[1].toLowerCase() : "fast";
 })();
 var turnQueue = { active:false, target:null, timer:0, settle:null, extras:[] };
 
