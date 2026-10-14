@@ -1004,6 +1004,7 @@ function reducedMotion(){
    plainly, and play the boot/open sequences a little faster. A capable machine keeps everything. */
 var LITE = false;
 function setLite(){ if(LITE) return; LITE = true; document.documentElement.classList.add("lite"); }
+function isLite(){ return LITE || document.documentElement.classList.contains("lite"); }
 function initPerfTier(){
   if(reducedMotion()) return;
   try{
@@ -1395,6 +1396,7 @@ function chainTurn(beat){
    the master leaf so it reads as pages flipping at once */
 function bundledRiffle(i, dist){
   var bundle = dist < 4 ? dist : 4;
+  if(isLite() && bundle > 2) bundle = 2;       /* a weak device throws fewer sheets at once */
   var dur = 640 + dist * 55; if(dur < 760) dur = 760; else if(dur > 1080) dur = 1080;
   turnQueue.active = true; turnQueue.target = i;
   doTurn(i, i > current ? 1 : -1, false, function(){ turnQueue.target = null; turnQueue.active = false; }, dur, bundle);
