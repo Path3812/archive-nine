@@ -812,7 +812,7 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
 .od-bar{ display:flex; align-items:center; gap:14px; padding:8px 15px; border-bottom:1px solid var(--o-line);
   background:#0a1218e6; font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--o-dim); }
 .od-bar .od-t{ color:var(--o-white); letter-spacing:.24em; }
-.od-bar .od-back{ margin-left:auto; font:inherit; font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+.od-bar .od-back{ margin-right:auto; font:inherit; font-size:10px; letter-spacing:.2em; text-transform:uppercase;
   color:var(--o-acc); background:#0a1218; border:1px solid var(--o-acc-2); border-radius:2px; padding:6px 12px; cursor:pointer; }
 .od-bar .od-back:hover,.od-bar .od-back:focus-visible{ background:#0d1a22; color:#bfe0f2; outline:none; }
 .od-body{ flex:1 1 auto; min-height:0; overflow:auto; padding:clamp(16px,4vw,44px); }
@@ -1033,12 +1033,9 @@ html.lite .off-gate .og-shield{ animation:none; }
 <!-- =========================== OFFICE DOCUMENT VIEWER =========================== -->
 <div id="offDoc" role="dialog" aria-modal="true" aria-label="Office of the Fourth restricted record">
   <div class="od-bar">
-    <span class="od-t">OFFICE OF THE 4TH &middot; RESTRICTED RECORD</span>
-    <span>O5 EYES ONLY &middot; LEVEL 5</span>
     <button type="button" class="od-back" id="offDocBack">&#8592; Return to archive</button>
   </div>
   <div class="od-body" id="offDocScroll"><div class="od-doc" id="offDocBody"></div></div>
-  <div class="off-mark"><span>CLASSIFIED</span><b>&#9679;</b><span>LEVEL 5</span><b>&#9679;</b><span>O5 EYES ONLY</span><b>&#9679;</b><span>NO FOREIGN DISSEMINATION</span></div>
 </div>
 
 <noscript>
