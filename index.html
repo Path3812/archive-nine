@@ -484,7 +484,8 @@ html.rm #opening .op-bar i{ animation:none; }
 html.rm *{ animation:none !important; transition:none !important; }
 html.rm .js .page{ opacity:1 !important; }
 /* shadow that sweeps across the page beneath a turning leaf (opacity-only: compositor-cheap) */
-.turnveil{ position:absolute; inset:0; border-radius:3px; pointer-events:none; opacity:0; z-index:4;
+.turnveil{ position:absolute; z-index:4; pointer-events:none; opacity:0; border-radius:3px;
+  top:calc(-1 * var(--pad-t)); left:calc(-1 * var(--pad-x)); right:calc(-1 * var(--pad-x)); bottom:calc(-1 * var(--pad-b));
   background:radial-gradient(140% 120% at 0% 50%, rgba(18,11,2,.5), rgba(18,11,2,0) 62%); }
 /* ---- performance tier: when the machine cannot hold a smooth frame, the perpetual
    decoration is frozen and the blended full-screen overlays are composited plainly ---- */
@@ -1202,6 +1203,8 @@ var _rt = 0;
 function scheduleRelayout(){ if(_rt) clearTimeout(_rt); _rt = setTimeout(relayout, 120); }
 var navGuard = null;   /* finalizes an in-flight page turn if a new one begins */
 function turnTo(i){
+  /* page navigation is inert until the folder has actually been opened */
+  if(!document.body.classList.contains("revealed")) return;
   if(i < 0 || i >= C.pages.length || i === current) return;
   if(navGuard){ navGuard(); navGuard = null; }
   var from = document.getElementById("page-" + C.pages[current].id);
