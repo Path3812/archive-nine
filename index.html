@@ -183,6 +183,24 @@ html.rm .page.turning::after{ animation:none !important; }
 .leaf-back.fwd::after{ animation:sheenFwd .9s cubic-bezier(.36,.05,.2,1) both; }
 .leaf-back.back::after{ animation:sheenBack .9s cubic-bezier(.36,.05,.2,1) both; }
 html.lite .leaf-back::after{ animation:none; }
+/* The read pile: the back of every leaf already turned, lying to the left of the spine.
+   It mirrors the turning leaf exactly (same box, same fold shade on the spine side), so a
+   leaf that has folded away simply stays where it landed and the pile grows by one.
+   The newest leaf sits square on the fold; older ones fan out beneath it. */
+.folio{ position:absolute; z-index:3; pointer-events:none;
+  top:calc(-1 * var(--pad-t)); bottom:calc(-1 * var(--pad-b));
+  right:calc(100% + var(--pad-x)); width:calc(100% + 2 * var(--pad-x)); }
+.folio i{ position:absolute; inset:0; border-radius:3px; transform-origin:right center;
+  border:1px solid var(--paper-edge);
+  background:linear-gradient(178deg,var(--paper-2),var(--paper));
+  box-shadow:0 26px 60px -30px rgba(0,0,0,.8), 0 0 0 1px rgba(188,171,128,.6);
+  transition:transform .5s cubic-bezier(.22,1.12,.34,1.16); }
+/* the fold shade on the spine side (the mirror of .leaf-back::before) */
+.folio i::before{ content:""; position:absolute; right:0; top:0; bottom:0; width:56px; border-radius:0 3px 3px 0;
+  background:linear-gradient(270deg, rgba(40,28,10,.24), rgba(40,28,10,0)); }
+/* deeper leaves sit a shade darker, so the pile reads as depth rather than one sheet */
+.folio i::after{ content:""; position:absolute; inset:0; border-radius:3px; pointer-events:none;
+  background:rgba(34,23,8,.9); opacity:var(--deep,0); transition:opacity .5s var(--ease); }
 .pgno{ font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:#6d6142;
   text-align:right; margin-top:auto; padding-top:10px; border-top:1px solid rgba(183,169,132,.5); }
 
@@ -550,6 +568,7 @@ html.lite #crt{ mix-blend-mode:normal; opacity:.32; }
 html.lite .boot-gate .seal{ animation:none; }
 html.lite #opening .op-bar i{ animation:none; }
 html.lite .page.turning::after{ animation:none; }
+html.lite .folio i{ transition-duration:.2s; }
 html.lite.glitch #crt{ animation:none; }
 html.lite .sheet::before{ mix-blend-mode:normal; opacity:.06; }
 html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
@@ -588,7 +607,7 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
   body{ background:#fff !important; color:#000 !important; }
   .reader{ max-width:none; margin:0; padding:0; zoom:1 !important; }
   .sheet{ box-shadow:none; border:1px solid #ccc; border-radius:0; padding:20mm; margin:0; background:#fff !important; color:#000 !important; }
-  .sheet::before,.sheet::after,.stack,.folder-frame,.folder-flap{ display:none !important; }
+  .sheet::before,.sheet::after,.stack,.folio,.folder-frame,.folder-flap{ display:none !important; }
   .page{ display:block !important; opacity:1 !important; page-break-after:always; }
   .page:last-child{ page-break-after:auto; }
   .cbar{ border:1px solid #000; background:#f0f0f0 !important; color:#000 !important; box-shadow:none; }
@@ -1149,7 +1168,7 @@ function renderPage(p, i, total){
 }
 
 /* ------------------------------------------------------------- build DOM */
-var book, tabsEl, stripEl, progressEl, fileEl, stackEl;
+var book, tabsEl, stripEl, progressEl, fileEl, stackEl, folioEl;
 var current = 0;
 function build(){
   var m = C.meta;
@@ -1194,6 +1213,26 @@ function setStack(){
   var n = total > 1 ? Math.round(remaining / (total - 1) * leaves.length) : 0;
   for(var k=0;k<leaves.length;k++){
     if(k < n) leaves[k].classList.add("on"); else leaves[k].classList.remove("on");
+  }
+}
+/* The read pile, left of the spine: one plain leaf back per page already turned. n defaults
+   to the pages before the current one. The newest leaf is first in the DOM and sits square on
+   the fold; each older leaf fans a little further out. Leaves are only added at the top and
+   removed from the top, so the fan re-settles with a transition instead of jumping. */
+var MAX_FOLIO = 7;
+function renderFolio(n){
+  if(!folioEl) return;
+  if(n === undefined || n === null) n = current;
+  if(n > MAX_FOLIO) n = MAX_FOLIO;
+  if(n < 0) n = 0;
+  while(folioEl.children.length < n) folioEl.insertBefore(document.createElement("i"), folioEl.firstChild);
+  while(folioEl.children.length > n) folioEl.removeChild(folioEl.firstChild);
+  var m = folioEl.children.length;
+  for(var k = 0; k < m; k++){
+    var el = folioEl.children[k];
+    el.style.zIndex = String(m - k);
+    el.style.setProperty("--deep", (k * 0.035 > 0.22 ? 0.22 : k * 0.035).toFixed(3));
+    el.style.transform = "translate(" + (-(k * 1.5)).toFixed(2) + "px," + (k * 0.7).toFixed(2) + "px) rotate(" + (-(k * 0.1)).toFixed(2) + "deg)";
   }
 }
 function updateUI(){
@@ -1266,23 +1305,65 @@ function positionFolder(){
 function relayout(){ fitSheet(); positionFolder(); }
 var _rt = 0;
 function scheduleRelayout(){ if(_rt) clearTimeout(_rt); _rt = setTimeout(relayout, 120); }
-var navGuard = null;   /* finalizes an in-flight page turn if a new one begins */
+/* ------------------------------------------------------------- page turns
+   Every step is its own leaf, and every step animates. A press that arrives while a leaf
+   is still turning is queued rather than jumped over, so mashing an arrow, or clicking a
+   distant tab, flips through the pages one at a time and the pile on the left grows a leaf
+   for each one. Holding a key does nothing (key repeat is ignored by initNav). */
+var turnQueue = { active:false, target:null, timer:0, settle:null };
+
+/* settle whatever is in flight, right now, and drop anything queued */
+function flushTurns(){
+  if(turnQueue.timer){ clearTimeout(turnQueue.timer); turnQueue.timer = 0; }
+  turnQueue.target = null; turnQueue.active = false;
+  var s = turnQueue.settle; turnQueue.settle = null;
+  if(s){ try{ s(); }catch(e){} }
+}
+
 function turnTo(i){
   /* page navigation is inert until the folder has actually been opened */
   if(!document.body.classList.contains("revealed")) return;
-  if(i < 0 || i >= C.pages.length || i === current) return;
-  if(navGuard){ navGuard(); navGuard = null; }
+  if(i < 0 || i >= C.pages.length) return;
+  turnQueue.target = i;
+  if(turnQueue.active) return;                 /* the leaf in flight chains on to this target */
+  if(i === current){ turnQueue.target = null; return; }
+  stepTurn();
+}
+
+/* The page a further "next"/"previous" press would land on, counting the leaves already
+   queued: each press then advances the target by exactly one page. */
+function pendingIndex(){ return turnQueue.target === null ? current : turnQueue.target; }
+
+/* move one page toward the target; when it lands, start the next step if one is waiting */
+function stepTurn(){
+  var t = turnQueue.target;
+  if(t === null || t === current){ turnQueue.target = null; turnQueue.active = false; return; }
+  var dir  = t > current ? 1 : -1;
+  var more = (t - (current + dir)) !== 0;      /* further steps follow this one: keep it brisk */
+  turnQueue.active = true;
+  doTurn(current + dir, dir, more, function(){
+    if(turnQueue.target !== null && turnQueue.target !== current){
+      turnQueue.timer = setTimeout(function(){ turnQueue.timer = 0; stepTurn(); }, more ? 110 : 0);
+    } else {
+      turnQueue.target = null; turnQueue.active = false;
+    }
+  });
+}
+
+function doTurn(i, dir, chained, cb){
   var from = document.getElementById("page-" + C.pages[current].id);
   var to   = document.getElementById("page-" + C.pages[i].id);
-  var dir  = i > current ? 1 : -1;
 
   if(reducedMotion() || !from || !to || !from.animate){
     if(from) from.classList.remove("active");
-    to.classList.add("active"); current = i; updateUI(); scrollFileTop(); return;
+    if(to) to.classList.add("active");
+    current = i; updateUI(); renderFolio(); scrollFileTop();
+    if(cb) cb(); return;
   }
 
-  /* The whole sheet turns. Forward: the current leaf folds away to the left about the spine.
-     Back: that same leaf swings back in from the left — an exact reverse. */
+  /* The whole sheet turns. Forward: the leaf on the right folds away to the left about the
+     spine and stays there as the newest leaf of the read pile. Back: the newest leaf of that
+     pile swings back over to the right, an exact reverse. */
   var leaf = dir > 0 ? from : to;
   var startRot = dir > 0 ? 0 : -180;
   var endRot   = dir > 0 ? -180 : 0;
@@ -1293,18 +1374,23 @@ function turnTo(i){
   } else {
     from.classList.add("active");         /* stays visible beneath the incoming leaf */
     to.classList.add("active");
+    renderFolio(current - 1);             /* the leaf now on its way was the top of the pile */
   }
 
   leaf.classList.add("turning", dir > 0 ? "fwd" : "back");
   leaf.style.transformOrigin = "left center";
   leaf.style.transform = "rotateY(" + startRot + "deg)";
 
-  /* transform-only: the leaf rotates on the compositor (no per-frame blur or shadow repaint) */
-  var anim = leaf.animate([
+  var dur  = chained ? 620 : 900;
+  var ease = "cubic-bezier(.36,.05,.2,1)";
+  var frames = [
     { transform:"rotateY(" + startRot + "deg)", offset:0 },
     { transform:"rotateY(" + (startRot + (endRot - startRot) * 0.5) + "deg)", offset:0.5 },
     { transform:"rotateY(" + endRot + "deg)",  offset:1 }
-  ], { duration: 900, easing: "cubic-bezier(.36,.05,.2,1)", fill:"both" });
+  ];
+
+  /* transform-only: the leaf rotates on the compositor (no per-frame blur or shadow repaint) */
+  var anim = leaf.animate(frames, { duration: dur, easing: ease, fill:"both" });
 
   /* the leaf's reverse: an identical paper leaf riding the same rotation, so the sheet stays
      in view after the front face passes 90deg instead of vanishing (it is layered beneath
@@ -1313,11 +1399,7 @@ function turnTo(i){
   backEl.className = "leaf-back " + (dir > 0 ? "fwd" : "back");
   backEl.setAttribute("aria-hidden","true");
   book.appendChild(backEl);
-  var backAnim = backEl.animate([
-    { transform:"rotateY(" + startRot + "deg)", offset:0 },
-    { transform:"rotateY(" + (startRot + (endRot - startRot) * 0.5) + "deg)", offset:0.5 },
-    { transform:"rotateY(" + endRot + "deg)",  offset:1 }
-  ], { duration: 900, easing: "cubic-bezier(.36,.05,.2,1)", fill:"both" });
+  var backAnim = backEl.animate(frames, { duration: dur, easing: ease, fill:"both" });
 
   /* the shadow that sweeps across the page lying beneath the turning leaf: a veil whose
      opacity rises then falls — compositor-only, unlike a per-frame brightness filter */
@@ -1325,13 +1407,13 @@ function turnTo(i){
   book.appendChild(velEl);
   var beneathAnim = velEl.animate([
     { opacity:0, offset:0 }, { opacity:1, offset:0.5 }, { opacity:0, offset:1 }
-  ], { duration: 900, easing: "cubic-bezier(.36,.05,.2,1)" });
+  ], { duration: dur, easing: ease });
   Sound.turn(dir);
 
   var finished = false;
   function done(){
     if(finished) return; finished = true;
-    if(navGuard === done) navGuard = null;
+    if(turnQueue.settle === done) turnQueue.settle = null;
     if(dir < 0) from.classList.remove("active");
     leaf.classList.remove("turning","fwd","back");
     try{ anim.cancel(); }catch(e){}
@@ -1340,10 +1422,12 @@ function turnTo(i){
     if(velEl && velEl.parentNode) velEl.parentNode.removeChild(velEl);
     if(backEl && backEl.parentNode) backEl.parentNode.removeChild(backEl);
     leaf.style.transformOrigin = ""; leaf.style.transform = "";
+    renderFolio();                        /* the leaf has landed: the pile takes it (or gives it up) */
+    if(cb) cb();
   }
-  navGuard = done;
+  turnQueue.settle = done;
   anim.onfinish = done;
-  setTimeout(done, 1150);
+  setTimeout(done, dur + 260);
 
   current = i; updateUI(); scrollFileTop();
 }
@@ -1421,7 +1505,7 @@ function folderClose(){
   if(!f) return;
   if(!document.body.classList.contains("revealed")) return;   /* nothing open yet */
   if(f.classList.contains("opening") || f.classList.contains("closing")) return;
-  if(navGuard){ navGuard(); navGuard = null; }                 /* settle any in-flight page turn */
+  flushTurns();                                                /* settle any in-flight page turn */
   syncFolderPage();                                            /* the folder's inner page matches what was on screen */
   scrollFileTop();
   positionFolder();
@@ -1950,9 +2034,10 @@ function initNav(){
     var t = ev.target, tag = (t && t.tagName) ? t.tagName.toLowerCase() : "";
     if(tag === "input" || tag === "textarea" || tag === "select") return;
     if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
+    if(ev.repeat) return;                        /* one press, one leaf: holding a key turns one page */
     var onBtn = (t && t.closest && (t.closest(".tabbtn") || t.closest(".ms") || t.closest("button") || t.closest("a")));
-    if(ev.key === "ArrowRight" || ev.key === "PageDown" || (ev.key === " " && !onBtn)){ ev.preventDefault(); turnTo(current + 1); }
-    else if(ev.key === "ArrowLeft" || ev.key === "PageUp"){ ev.preventDefault(); turnTo(current - 1); }
+    if(ev.key === "ArrowRight" || ev.key === "PageDown" || (ev.key === " " && !onBtn)){ ev.preventDefault(); turnTo(pendingIndex() + 1); }
+    else if(ev.key === "ArrowLeft" || ev.key === "PageUp"){ ev.preventDefault(); turnTo(pendingIndex() - 1); }
     else if(ev.key === "Home"){ ev.preventDefault(); turnTo(0); }
     else if(ev.key === "End"){ ev.preventDefault(); turnTo(C.pages.length - 1); }
   });
@@ -2007,6 +2092,13 @@ function init(){
   fileEl = document.getElementById("file");
   stackEl = document.querySelector(".stack");
   build();
+  /* the pile of leaves already turned, resting to the left of the spine. Built here because
+     build() rewrites the book's contents. */
+  folioEl = document.createElement("div");
+  folioEl.className = "folio";
+  folioEl.setAttribute("aria-hidden", "true");
+  book.appendChild(folioEl);
+  renderFolio();
   updateUI();
   Notes.init();
   initNav();
