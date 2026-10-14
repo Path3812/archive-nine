@@ -1652,10 +1652,10 @@ function boot(){
   }
   function skip(){
     if(done || !startedAt || Date.now() - startedAt < 420) return;
-    done = true; Sound._done = true; clearInterval(clk); clearInterval(sideT); window.removeEventListener("keydown", skip);
-    el.classList.add("gone"); Sound.close();
-    setTimeout(function(){ if(el.parentNode) el.remove(); }, 1200);
-    setTimeout(function(){ stageOpening(1400); }, 1500);
+    done = true; Sound._done = true; clearInterval(clk); clearInterval(sideT);
+    window.removeEventListener("keydown", skip); el.removeEventListener("click", skip);
+    /* skipping fast-forwards the boot — it still lands on the file index, never past it */
+    stageSelect();
   }
   function stageWelcome(){
     stepEl.textContent = "READY"; hint.textContent = ""; prog.style.width = "100%";
@@ -1694,19 +1694,24 @@ function boot(){
     out.innerHTML = seatMenuHTML();
     Sound.relay();
     var menu = out.querySelector(".boot-pick");
-    if(menu) menu.addEventListener("click", function(ev){
-      var b = ev.target.closest ? ev.target.closest("[data-pick]") : null;
-      if(b) pick(b.getAttribute("data-pick"));
-    });
     var first = out.querySelector("[data-pick]");
-    if(first){ try{ first.focus({ preventScroll:true }); }catch(e){ first.focus(); } }
+    var picked = false;
     function onKey(ev){
       if(ev.key !== "Enter" && ev.key !== " " && ev.key !== "Spacebar") return;
       ev.preventDefault();
       var b = out.querySelector("[data-pick]"); if(b) b.click();
     }
-    window.addEventListener("keydown", onKey);
-    var picked = false;
+    /* the index becomes live a moment after it is drawn: the press that skipped the boot
+       (its click, or its key-up landing on the freshly focused button) must not also pick a record */
+    setTimeout(function(){
+      if(picked) return;
+      if(menu) menu.addEventListener("click", function(ev){
+        var b = ev.target.closest ? ev.target.closest("[data-pick]") : null;
+        if(b) pick(b.getAttribute("data-pick"));
+      });
+      window.addEventListener("keydown", onKey);
+      if(first){ try{ first.focus({ preventScroll:true }); }catch(e){ first.focus(); } }
+    }, 300);
     function pick(id){
       if(picked) return; picked = true;
       window.removeEventListener("keydown", onKey);
