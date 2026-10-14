@@ -1306,11 +1306,37 @@ function relayout(){ fitSheet(); positionFolder(); }
 var _rt = 0;
 function scheduleRelayout(){ if(_rt) clearTimeout(_rt); _rt = setTimeout(relayout, 120); }
 /* ------------------------------------------------------------- page turns
-   Every step is its own leaf, and every step animates. A press that arrives while a leaf
-   is still turning is queued rather than jumped over, so mashing an arrow, or clicking a
-   distant tab, flips through the pages one at a time and the pile on the left grows a leaf
-   for each one. Holding a key does nothing (key repeat is ignored by initNav). */
-var turnQueue = { active:false, target:null, timer:0, settle:null };
+   Two ways to move through the file:
+
+     · a single STEP (arrow keys, PageUp/Down, Space): exactly one leaf. A press that
+       lands while a leaf is still in the air is IGNORED, so mashing an arrow turns a
+       single page — it never builds a queue to churn through afterwards.
+
+     · a JUMP (a Contents entry, a tab, Home/End): the file riffles through the pages
+       to the one asked for. How that travel looks is chosen with a URL flag,
+       ?riffle=bundled (default) or ?riffle=fast. Bundled throws several sheets at once
+       across one arc; fast runs one leaf per beat with the beat shortened to the
+       distance, so a long jump does not crawl. Both land on the pile the same way.
+
+   Holding a key does nothing (key repeat is ignored by initNav). */
+var RIFFLE = (function(){
+  var m = location.search.match(/[?&]riffle=(fast|bundled)\b/i);
+  return m ? m[1].toLowerCase() : "bundled";
+})();
+var turnQueue = { active:false, target:null, timer:0, settle:null, extras:[] };
+
+function turnBusy(){ return turnQueue.active || !!turnQueue.timer; }
+
+/* drop the extra sheets thrown by a bundled riffle (still in flight, or not yet launched) */
+function clearExtras(){
+  for(var k = 0; k < turnQueue.extras.length; k++){
+    var e = turnQueue.extras[k];
+    if(e.timer){ clearTimeout(e.timer); e.timer = 0; }
+    if(e.anim){ try{ e.anim.cancel(); }catch(_e){} }
+    if(e.el && e.el.parentNode) e.el.parentNode.removeChild(e.el);
+  }
+  turnQueue.extras.length = 0;
+}
 
 /* settle whatever is in flight, right now, and drop anything queued */
 function flushTurns(){
@@ -1320,22 +1346,37 @@ function flushTurns(){
   if(s){ try{ s(); }catch(e){} }
 }
 
-function turnTo(i){
+/* one press, one leaf — a press during a turn is dropped, not queued */
+function turnStep(dir){
+  if(!document.body.classList.contains("revealed")) return;
+  if(turnBusy()) return;
+  var i = current + dir;
+  if(i < 0 || i >= C.pages.length) return;
+  turnQueue.active = true; turnQueue.target = i;
+  doTurn(i, dir, false, function(){ turnQueue.active = false; turnQueue.target = null; });
+}
+
+/* riffle to page i */
+function turnJump(i){
   /* page navigation is inert until the folder has actually been opened */
   if(!document.body.classList.contains("revealed")) return;
   if(i < 0 || i >= C.pages.length) return;
-  turnQueue.target = i;
-  if(turnQueue.active) return;                 /* the leaf in flight chains on to this target */
-  if(i === current){ turnQueue.target = null; return; }
-  stepTurn();
+  if(turnBusy()) flushTurns();                 /* a jump overrides a turn already in flight */
+  if(i === current) return;
+  var dist = Math.abs(i - current);
+  var dir  = i > current ? 1 : -1;
+  if(dist === 1){ turnStep(dir); return; }     /* a neighbour is just a step */
+  if(RIFFLE === "fast") fastRiffle(i, dist); else bundledRiffle(i, dist);
 }
 
-/* The page a further "next"/"previous" press would land on, counting the leaves already
-   queued: each press then advances the target by exactly one page. */
-function pendingIndex(){ return turnQueue.target === null ? current : turnQueue.target; }
-
-/* move one page toward the target; when it lands, start the next step if one is waiting */
-function stepTurn(){
+/* fast riffle: one leaf per beat, the beat shorter the further we have to travel
+   (≈1.5s for a long haul instead of the old ~6s crawl) */
+function fastRiffle(i, dist){
+  var beat = dist >= 8 ? 170 : dist >= 5 ? 210 : dist >= 3 ? 280 : 360;
+  turnQueue.active = true; turnQueue.target = i;
+  chainTurn(beat);
+}
+function chainTurn(beat){
   var t = turnQueue.target;
   if(t === null || t === current){ turnQueue.target = null; turnQueue.active = false; return; }
   var dir  = t > current ? 1 : -1;
@@ -1343,14 +1384,23 @@ function stepTurn(){
   turnQueue.active = true;
   doTurn(current + dir, dir, more, function(){
     if(turnQueue.target !== null && turnQueue.target !== current){
-      turnQueue.timer = setTimeout(function(){ turnQueue.timer = 0; stepTurn(); }, more ? 110 : 0);
+      turnQueue.timer = setTimeout(function(){ turnQueue.timer = 0; chainTurn(beat); }, more ? 25 : 0);
     } else {
       turnQueue.target = null; turnQueue.active = false;
     }
-  });
+  }, more ? beat : Math.round(beat * 1.6));
 }
 
-function doTurn(i, dir, chained, cb){
+/* bundled riffle: the whole jump is one arc, with several sheets thrown a beat behind
+   the master leaf so it reads as pages flipping at once */
+function bundledRiffle(i, dist){
+  var bundle = dist < 4 ? dist : 4;
+  var dur = 640 + dist * 55; if(dur < 760) dur = 760; else if(dur > 1080) dur = 1080;
+  turnQueue.active = true; turnQueue.target = i;
+  doTurn(i, i > current ? 1 : -1, false, function(){ turnQueue.target = null; turnQueue.active = false; }, dur, bundle);
+}
+
+function doTurn(i, dir, chained, cb, durOverride, bundle){
   var from = document.getElementById("page-" + C.pages[current].id);
   var to   = document.getElementById("page-" + C.pages[i].id);
 
@@ -1381,7 +1431,7 @@ function doTurn(i, dir, chained, cb){
   leaf.style.transformOrigin = "left center";
   leaf.style.transform = "rotateY(" + startRot + "deg)";
 
-  var dur  = chained ? 620 : 900;
+  var dur  = durOverride || (chained ? 620 : 900);
   var ease = "cubic-bezier(.36,.05,.2,1)";
   var frames = [
     { transform:"rotateY(" + startRot + "deg)", offset:0 },
@@ -1410,10 +1460,33 @@ function doTurn(i, dir, chained, cb){
   ], { duration: dur, easing: ease });
   Sound.turn(dir);
 
+  /* bundled riffle: a few more sheets thrown a beat behind the master leaf, each rotating
+     about the same spine, so a jump reads as several pages flipping at once instead of one.
+     They are plain paper (the reverse of a leaf), never page content, so nothing is mis-shown. */
+  if(bundle && bundle > 1){
+    var stagger = Math.round(dur * 0.15);
+    for(var k = 1; k < bundle; k++){
+      (function(k){
+        var rec = { timer:0, anim:null, el:null };
+        turnQueue.extras.push(rec);
+        rec.timer = setTimeout(function(){
+          rec.timer = 0;
+          var exEl = document.createElement("div");
+          exEl.className = "leaf-back " + (dir > 0 ? "fwd" : "back");
+          exEl.setAttribute("aria-hidden","true");
+          book.appendChild(exEl);
+          rec.el = exEl;
+          rec.anim = exEl.animate(frames, { duration: dur - k * stagger, easing: ease, fill:"both" });
+        }, k * stagger);
+      })(k);
+    }
+  }
+
   var finished = false;
   function done(){
     if(finished) return; finished = true;
     if(turnQueue.settle === done) turnQueue.settle = null;
+    clearExtras();                        /* drop any bundled sheets still in the air */
     if(dir < 0) from.classList.remove("active");
     leaf.classList.remove("turning","fwd","back");
     try{ anim.cancel(); }catch(e){}
@@ -2024,24 +2097,25 @@ function reveal(){
 
 /* ------------------------------------------------------------- navigation */
 function initNav(){
-  tabsEl.addEventListener("click", function(ev){ var b = ev.target.closest(".tabbtn"); if(b) turnTo(parseInt(b.getAttribute("data-i"), 10)); });
-  stripEl.addEventListener("click", function(ev){ var b = ev.target.closest(".ms"); if(b) turnTo(parseInt(b.getAttribute("data-i"), 10)); });
+  tabsEl.addEventListener("click", function(ev){ var b = ev.target.closest(".tabbtn"); if(b) turnJump(parseInt(b.getAttribute("data-i"), 10)); });
+  stripEl.addEventListener("click", function(ev){ var b = ev.target.closest(".ms"); if(b) turnJump(parseInt(b.getAttribute("data-i"), 10)); });
   document.addEventListener("click", function(ev){
     var g = ev.target.closest ? ev.target.closest("[data-goto]") : null;
-    if(g){ ev.preventDefault(); turnTo(pageIndexById(g.getAttribute("data-goto"))); }
+    if(g){ ev.preventDefault(); turnJump(pageIndexById(g.getAttribute("data-goto"))); }
   });
   document.addEventListener("keydown", function(ev){
     var t = ev.target, tag = (t && t.tagName) ? t.tagName.toLowerCase() : "";
     if(tag === "input" || tag === "textarea" || tag === "select") return;
     if(ev.metaKey || ev.ctrlKey || ev.altKey) return;
-    if(ev.repeat) return;                        /* one press, one leaf: holding a key turns one page */
+    if(ev.repeat) return;                        /* holding a key does nothing: one press, one page */
     var onBtn = (t && t.closest && (t.closest(".tabbtn") || t.closest(".ms") || t.closest("button") || t.closest("a")));
-    if(ev.key === "ArrowRight" || ev.key === "PageDown" || (ev.key === " " && !onBtn)){ ev.preventDefault(); turnTo(pendingIndex() + 1); }
-    else if(ev.key === "ArrowLeft" || ev.key === "PageUp"){ ev.preventDefault(); turnTo(pendingIndex() - 1); }
-    else if(ev.key === "Home"){ ev.preventDefault(); turnTo(0); }
-    else if(ev.key === "End"){ ev.preventDefault(); turnTo(C.pages.length - 1); }
+    /* arrows/wheel-style steps advance ONE leaf and ignore a press that lands mid-turn */
+    if(ev.key === "ArrowRight" || ev.key === "PageDown" || (ev.key === " " && !onBtn)){ ev.preventDefault(); turnStep(1); }
+    else if(ev.key === "ArrowLeft" || ev.key === "PageUp"){ ev.preventDefault(); turnStep(-1); }
+    else if(ev.key === "Home"){ ev.preventDefault(); turnJump(0); }
+    else if(ev.key === "End"){ ev.preventDefault(); turnJump(C.pages.length - 1); }
   });
-  var bc = document.getElementById("btnContents"); if(bc) bc.addEventListener("click", function(){ turnTo(pageIndexById("toc")); });
+  var bc = document.getElementById("btnContents"); if(bc) bc.addEventListener("click", function(){ turnJump(pageIndexById("toc")); });
   var bcl = document.getElementById("btnClose"); if(bcl) bcl.addEventListener("click", folderClose);
 }
 function initGlitch(){
