@@ -638,6 +638,223 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
   .doc-foot{ border-top-color:#999; color:#666 !important; }
   .contents .go,.log-row{ border-color:#ccc; }
 }
+
+/* =========================================================================
+   OFFICE OF THE 4TH — SECURE TERMINAL
+   A colder, higher-authority system than the Group's terminal: stark classification
+   markings, tabular data, one cold accent. Same single file, no external assets.
+   ========================================================================= */
+#office{
+  --o-bg:#04070a; --o-panel:#0a1016; --o-panel-2:#0c141b;
+  --o-line:#15222d; --o-line-2:#25394a;
+  --o-ink:#c2d2dd; --o-dim:#6f8494; --o-dimmer:#465563;
+  --o-acc:#8ec2de; --o-acc-2:#4f7f9d; --o-white:#eef5f9;
+  --o-red:#bf4634; --o-red-2:#7d2a1e; --o-amber:#d6a542; --o-green:#79bda0;
+  position:fixed; inset:0; z-index:96; display:flex; flex-direction:column;
+  padding:clamp(6px,1.8vw,16px);
+  color:var(--o-ink); font-family:var(--mono); font-size:12.5px; letter-spacing:.02em;
+  background:
+    repeating-linear-gradient(0deg, rgba(150,190,215,.028) 0 1px, transparent 1px 4px),
+    radial-gradient(125% 100% at 50% 26%, #0a131a 0%, #04070a 78%);
+  transition:opacity .95s var(--ease);
+}
+#office.gone{ opacity:0; pointer-events:none; }
+.off-frame{ position:relative; flex:1 1 auto; min-height:0; display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  border:1px solid var(--o-line-2); border-radius:2px;
+  background:linear-gradient(#070c11f2,#05090df2);
+  box-shadow:0 0 0 1px #000 inset, 0 0 90px -34px var(--o-acc-2) inset; overflow:hidden; }
+.off-frame::after{ content:""; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(130% 100% at 50% 42%, transparent 54%, rgba(0,0,0,.5)); }
+/* classification markings: a red strip top and bottom, as on a real classified document */
+.off-mark{ display:flex; align-items:center; justify-content:center; gap:16px; white-space:nowrap; overflow:hidden;
+  padding:5px 12px; font-size:9px; letter-spacing:.34em; text-transform:uppercase; color:#f0d7d2;
+  background:linear-gradient(#7d2a1e,#5f1f16); border-bottom:1px solid #3a1210; }
+.off-mark b{ color:#fff; font-weight:600; letter-spacing:0; }
+.off-mark.cold{ color:var(--o-acc); background:linear-gradient(#0c1820,#0a1218); border-top:1px solid var(--o-line); border-bottom:none; }
+.off-mark.cold b{ color:var(--o-acc-2); }
+.off-bar{ position:relative; z-index:1; display:flex; align-items:center; gap:13px; padding:9px 16px;
+  border-bottom:1px solid var(--o-line); background:#0a1218cc;
+  font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--o-dim); }
+.off-bar .ob-l{ display:flex; align-items:center; }
+.off-bar .ob-seal{ display:block; width:24px; height:24px; color:var(--o-acc); filter:drop-shadow(0 0 8px rgba(142,194,222,.4)); }
+.off-bar .ob-t{ color:var(--o-white); letter-spacing:.26em; }
+.off-bar .ob-c{ margin-left:auto; color:var(--o-acc); }
+.off-bar .ob-r{ color:var(--o-dim); font-variant-numeric:tabular-nums; }
+.off-body{ position:relative; z-index:1; min-height:0; overflow:auto; padding:clamp(14px,3vw,30px);
+  display:flex; flex-direction:column; }
+.off-body.center{ align-items:center; }
+.off-foot{ position:relative; z-index:1; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px; padding:8px 16px;
+  border-top:1px solid var(--o-line); background:#0a1218cc;
+  font-size:9.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--o-dimmer); }
+.off-foot .of-prog{ width:100%; max-width:200px; height:3px; background:#0e1a22; border-radius:2px; overflow:hidden; justify-self:start; }
+.off-foot .of-prog i{ display:block; height:100%; width:0; transition:width .3s linear;
+  background:linear-gradient(90deg,var(--o-acc-2),var(--o-acc)); box-shadow:0 0 10px -2px var(--o-acc); }
+.off-foot #offMeta{ justify-self:center; white-space:nowrap; }
+.off-foot .of-hint{ justify-self:end; text-align:right; }
+.off-foot b{ color:var(--o-ink); font-weight:400; }
+/* ---- the opening gate ---- */
+.off-gate{ margin:auto; text-align:center; padding:18px; width:100%; max-width:640px; }
+.off-gate .og-shield{ width:88px; height:88px; margin:0 auto 20px; color:var(--o-acc); filter:drop-shadow(0 0 26px rgba(142,194,222,.32)); animation:offbreathe 3.6s var(--ease) infinite; }
+.off-gate .og-shield svg, .ofc-face .ofc-seal svg{ display:block; width:100%; height:100%; }
+@keyframes offbreathe{ 50%{ filter:drop-shadow(0 0 38px rgba(142,194,222,.6)); } }
+.off-gate .og-t{ letter-spacing:.4em; padding-left:.4em; text-transform:uppercase; color:var(--o-white); font-size:13px; }
+.off-gate .og-s{ margin-top:9px; color:var(--o-dim); font-size:11px; letter-spacing:.12em; }
+.off-gate .og-b{ display:inline-block; position:relative; margin-top:26px; padding:10px 4px 14px; font:inherit; font-size:12px;
+  letter-spacing:.26em; text-transform:uppercase; color:var(--o-acc); background:none; border:0;
+  cursor:pointer; text-shadow:0 0 10px rgba(142,194,222,.35); }
+.off-gate .og-b::before{ content:"\003E\00a0"; color:var(--o-acc-2); }
+.off-gate .og-b::after{ content:"\00a0\003C"; color:var(--o-acc-2); }
+.off-gate .og-b:hover{ color:#bfe0f2; text-shadow:0 0 18px rgba(142,194,222,.7); }
+.off-gate .og-b:focus-visible{ outline:1px solid var(--o-acc-2); outline-offset:7px; color:#bfe0f2; }
+.off-gate .og-s.og-red{ color:#f23325; text-shadow:0 0 12px rgba(238,40,30,.92), 0 0 28px rgba(200,22,16,.52);
+  animation:ogredpulse 3.2s var(--ease) infinite; }
+@keyframes ogredpulse{ 50%{ text-shadow:0 0 18px rgba(255,60,46,.98), 0 0 42px rgba(214,28,20,.62); } }
+/* the Fourth Eye: the three dots slowly orbit the blue core */
+.o5-dots{ transform-box:view-box; transform-origin:24px 24px; animation:o5spin 11s linear infinite; }
+@keyframes o5spin{ to{ transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce){ .o5-dots{ animation:none; } }
+/* the line under the text glows: one bright band slides across and wraps seamlessly */
+.off-gate .og-line{ position:absolute; left:-18px; right:-18px; bottom:0; height:2px; overflow:hidden;
+  background:rgba(142,194,222,.20);
+  box-shadow:0 0 6px rgba(142,194,222,.28); }
+.off-gate .og-line::after{ content:""; position:absolute; top:0; bottom:0; left:0; width:40%;
+  background:linear-gradient(90deg, rgba(142,194,222,0), rgba(196,228,248,.95) 55%, rgba(142,194,222,0));
+  transform:translateX(-100%);
+  animation:ogsweep 1.9s linear infinite; }
+@keyframes ogsweep{ from{ transform:translateX(-100%); } to{ transform:translateX(250%); } }
+/* ---- boot log ---- */
+.off-log{ display:flex; flex-direction:column; margin-top:auto; width:100%; max-width:760px; }
+.off-line{ white-space:pre-wrap; word-break:break-word; line-height:1.64; text-shadow:0 0 6px rgba(142,194,222,.16); }
+.off-line.dim{ color:var(--o-dim); } .off-line.ok{ color:var(--o-green); } .off-line.warn{ color:var(--o-amber); }
+.off-line.bad{ color:var(--o-red); } .off-line.acc{ color:var(--o-acc); }
+.off-line.banner{ color:var(--o-white); letter-spacing:.18em; }
+.off-line .bar{ color:var(--o-acc-2); }
+.off-line .caret{ display:inline-block; width:.55em; height:1em; margin-left:2px; background:var(--o-acc); vertical-align:-.14em; animation:blink 1s steps(1) infinite; }
+/* ---- welcome ---- */
+.off-welcome{ margin:auto; text-align:center; width:100%; }
+.off-welcome .ow-big{ letter-spacing:.7em; padding-left:.7em; text-transform:uppercase; font-size:24px; color:var(--o-white); text-shadow:0 0 20px rgba(142,194,222,.42); animation:wfade .9s var(--ease) both; }
+.off-welcome .ow-id{ margin-top:18px; letter-spacing:.24em; text-transform:uppercase; font-size:12.5px; color:var(--o-acc); animation:wfade .9s var(--ease) .18s both; }
+.off-welcome .ow-sub{ margin-top:14px; font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--o-dim); animation:wfade .9s var(--ease) .42s both; }
+/* ---- the case folder: press it, the cover swings open onto the archive ---- */
+.off-folder{ margin:auto; width:100%; max-width:620px; perspective:2000px; }
+.off-folder .ofc-inner{ position:relative; transform-style:preserve-3d; }
+.ofc-inside{ position:relative; padding:18px; min-height:300px; visibility:hidden; pointer-events:none;
+  border:1px solid var(--o-line-2); border-radius:3px;
+  background:linear-gradient(160deg,#0a1218,#070c10); box-shadow:0 30px 70px -34px #000, 0 0 0 1px #000 inset; }
+.off-folder.open .ofc-inside{ visibility:visible; pointer-events:auto; }
+.ofc-cover{ position:absolute; inset:0; transform-origin:left center; transform:rotateY(0deg); transform-style:preserve-3d;
+  transition:transform 1.05s cubic-bezier(.44,.02,.16,1); pointer-events:none; }
+.off-folder.armed .ofc-cover{ pointer-events:auto; cursor:pointer; }
+.off-folder.open .ofc-cover{ transform:rotateY(-180deg); }
+.ofc-face,.ofc-face-back{ position:absolute; inset:0; border:1px solid var(--o-line-2); border-radius:3px;
+  -webkit-backface-visibility:hidden; backface-visibility:hidden; }
+.ofc-face{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; text-align:center; padding:30px;
+  background:linear-gradient(160deg,#0d1721,#080d12); box-shadow:0 30px 70px -34px #000, 0 0 0 1px #000 inset; }
+.ofc-face-back{ transform:rotateY(180deg); background:linear-gradient(160deg,#0b141c,#070b0f); }
+.ofc-face .ofc-seal{ width:66px; height:66px; color:var(--o-acc); filter:drop-shadow(0 0 18px rgba(142,194,222,.3)); }
+.ofc-face .ofc-name{ letter-spacing:.34em; padding-left:.34em; text-transform:uppercase; font-size:15px; color:var(--o-white); }
+.ofc-face .ofc-doc{ letter-spacing:.22em; text-transform:uppercase; font-size:10.5px; color:var(--o-dim); }
+.ofc-face .ofc-ref{ margin-top:8px; font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--o-acc-2); }
+.ofc-hint{ text-align:center; margin-top:15px; font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--o-dim); }
+/* ---- the restricted archive (inside the folder) ---- */
+.off-arch .oa-h{ letter-spacing:.28em; text-transform:uppercase; color:var(--o-white); font-size:11.5px; }
+.off-arch .oa-s{ color:var(--o-dim); font-size:10.5px; line-height:1.5; margin:7px 0 13px; }
+.oa-list{ list-style:none; margin:0; padding:0; display:grid; gap:6px; }
+.oa-entry{ display:flex; align-items:center; gap:12px; width:100%; text-align:left; font:inherit; color:var(--o-ink);
+  cursor:pointer; padding:10px 12px; border:1px solid var(--o-line); border-left:3px solid var(--o-line-2);
+  border-radius:2px; background:#0a1218; transition:border-color .2s, background .2s, box-shadow .2s; }
+.oa-entry:hover,.oa-entry:focus-visible{ border-color:var(--o-acc-2); border-left-color:var(--o-acc); background:#0d1a22;
+  outline:none; box-shadow:0 0 24px -14px var(--o-acc); }
+.oa-ref{ flex:0 0 auto; min-width:104px; font-size:10px; letter-spacing:.14em; color:var(--o-acc); }
+.oa-name{ flex:1 1 auto; min-width:0; font-size:11px; color:var(--o-ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.oa-name .bar{ color:var(--o-dimmer); letter-spacing:-.5px; }
+.oa-st{ flex:0 0 auto; font-size:9px; letter-spacing:.24em; text-transform:uppercase; color:var(--o-dim); }
+.oa-entry.locked{ border-left-color:var(--o-red-2); }
+.oa-entry.locked .oa-ref{ color:var(--o-dimmer); }
+.oa-entry.locked .oa-st{ color:var(--o-red); }
+.oa-lamp{ flex:0 0 auto; width:9px; height:9px; border-radius:50%; background:var(--o-red);
+  box-shadow:0 0 12px 2px rgba(191,70,52,.8); animation:offpulse 1.5s var(--ease) infinite; }
+@keyframes offpulse{ 0%,100%{ opacity:1; box-shadow:0 0 12px 2px rgba(191,70,52,.85); } 50%{ opacity:.28; box-shadow:0 0 4px 0 rgba(191,70,52,.4); } }
+/* ---- confirm gate ---- */
+.off-confirm{ margin:auto; width:100%; max-width:560px; text-align:center; }
+.off-confirm .oc-w{ color:var(--o-red); letter-spacing:.3em; text-transform:uppercase; font-size:13px; }
+.off-confirm .oc-file{ margin:16px 0; padding:12px; border:1px solid var(--o-line); background:#0a1218; font-size:11px; color:var(--o-dim); letter-spacing:.06em; }
+.off-confirm .oc-file .bar{ color:var(--o-dimmer); letter-spacing:-.5px; }
+.off-confirm .oc-ask{ margin-top:16px; color:var(--o-ink); font-size:12.5px; letter-spacing:.12em; }
+.off-confirm .oc-btns{ display:flex; gap:12px; justify-content:center; margin-top:22px; flex-wrap:wrap; }
+.off-btn{ font:inherit; font-size:11px; letter-spacing:.22em; text-transform:uppercase; padding:11px 18px; cursor:pointer;
+  color:var(--o-acc); background:#0a1218; border:1px solid var(--o-acc-2); border-radius:2px; transition:background .2s,color .2s,border-color .2s,box-shadow .2s; }
+.off-btn:hover,.off-btn:focus-visible{ background:#0d1a22; color:#bfe0f2; outline:none; box-shadow:0 0 24px -12px var(--o-acc); }
+.off-btn.danger{ color:#e8b0a6; border-color:var(--o-red-2); }
+.off-btn.danger:hover,.off-btn.danger:focus-visible{ border-color:var(--o-red); color:#f2cdc6; box-shadow:0 0 24px -12px var(--o-red); }
+/* ---- clearance sequence ---- */
+.off-clear{ margin:auto; width:100%; max-width:720px; }
+.off-clear .ocl-step{ display:flex; align-items:baseline; gap:12px; margin:18px 0 10px;
+  font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--o-acc-2); }
+.off-clear .ocl-step:first-child{ margin-top:0; }
+.off-clear .ocl-step .ocl-n{ color:var(--o-dimmer); }
+.off-clear .ocl-warn{ border:1px solid var(--o-red-2); background:linear-gradient(#1a0d0a,#120807); padding:15px 17px; }
+.off-clear .ocl-wt{ color:var(--o-red); letter-spacing:.2em; text-transform:uppercase; font-size:12px; }
+.off-clear .ocl-ws{ margin-top:9px; color:#d9a99f; font-size:11px; line-height:1.55; }
+.off-clear .ocl-line{ line-height:1.75; color:var(--o-ink); }
+.off-clear .ocl-label{ color:var(--o-dim); }
+.off-clear .ocl-val{ color:var(--o-white); letter-spacing:.14em; }
+.off-clear .ocl-ok{ color:var(--o-green); letter-spacing:.16em; }
+.off-clear .ocl-bad{ color:var(--o-red); letter-spacing:.16em; }
+.off-clear .ocl-id{ color:var(--o-acc); letter-spacing:.24em; font-size:13.5px; }
+/* ---- the Office document viewer ---- */
+#offDoc{ position:fixed; inset:0; z-index:97; display:none; flex-direction:column;
+  color:var(--o-ink); font-family:var(--mono); font-size:12.5px;
+  background:repeating-linear-gradient(0deg, rgba(150,190,215,.024) 0 1px, transparent 1px 4px),
+    radial-gradient(125% 100% at 50% 18%, #0a131a, #040709 80%); }
+#offDoc.show{ display:flex; }
+.od-bar{ display:flex; align-items:center; gap:14px; padding:8px 15px; border-bottom:1px solid var(--o-line);
+  background:#0a1218e6; font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--o-dim); }
+.od-bar .od-t{ color:var(--o-white); letter-spacing:.24em; }
+.od-bar .od-back{ margin-left:auto; font:inherit; font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--o-acc); background:#0a1218; border:1px solid var(--o-acc-2); border-radius:2px; padding:6px 12px; cursor:pointer; }
+.od-bar .od-back:hover,.od-bar .od-back:focus-visible{ background:#0d1a22; color:#bfe0f2; outline:none; }
+.od-body{ flex:1 1 auto; min-height:0; overflow:auto; padding:clamp(16px,4vw,44px); }
+.od-doc{ max-width:840px; margin:0 auto; }
+.od-head{ border-bottom:1px solid var(--o-line-2); padding-bottom:14px; margin-bottom:18px; }
+.od-head .odh-cls{ color:var(--o-red); letter-spacing:.24em; text-transform:uppercase; font-size:11px; }
+.od-head .odh-t{ margin:9px 0 0; color:var(--o-white); font-family:var(--serif); font-weight:600;
+  font-size:clamp(20px,3.6vw,31px); line-height:1.14; letter-spacing:.01em; }
+.od-head .odh-s{ margin-top:8px; color:var(--o-dim); font-size:11px; letter-spacing:.05em; }
+.od-meta{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:0 28px; margin:16px 0 22px; }
+.od-meta .odm{ display:flex; justify-content:space-between; gap:14px; border-bottom:1px solid var(--o-line); padding:6px 0; font-size:11px; }
+.od-meta .odm dt{ color:var(--o-dim); letter-spacing:.1em; }
+.od-meta .odm dd{ margin:0; color:var(--o-ink); text-align:right; }
+.od-sec{ margin:24px 0 0; }
+.od-sec h2{ font-family:var(--mono); font-weight:600; font-size:12px; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--o-acc); border-bottom:1px solid var(--o-line); padding-bottom:7px; margin:0 0 12px; }
+.od-sec p{ font-family:var(--serif); font-size:15.5px; line-height:1.7; color:#cdd9e2; margin:0 0 12px; }
+.od-sec ul{ margin:0 0 12px; padding-left:20px; }
+.od-sec li{ font-family:var(--serif); font-size:15.5px; line-height:1.62; color:#cdd9e2; margin:0 0 8px; }
+.od-redact{ display:inline-block; background:#040709; color:transparent; border-radius:1px; padding:0 .35em; box-shadow:0 0 0 1px var(--o-line) inset; }
+.od-bars{ color:var(--o-dimmer); letter-spacing:-.5px; }
+.od-note{ border-left:2px solid var(--o-acc-2); background:#0a1218; padding:11px 15px; margin:16px 0;
+  font-size:11px; line-height:1.6; color:var(--o-dim); letter-spacing:.03em; }
+.od-note b{ color:var(--o-acc); font-weight:400; }
+.od-sign{ margin-top:26px; padding-top:14px; border-top:1px solid var(--o-line-2); font-size:11px; line-height:1.7; color:var(--o-dim); letter-spacing:.06em; }
+.od-sign b{ color:var(--o-white); font-weight:600; letter-spacing:.16em; }
+.od-hold{ margin:clamp(30px,10vh,110px) auto; max-width:580px; text-align:center; }
+.od-hold .odh-big{ color:var(--o-red); letter-spacing:.2em; text-transform:uppercase; font-size:14px; line-height:1.5; }
+.od-hold .odh-big.amber{ color:var(--o-amber); }
+.od-hold .odh-p{ margin-top:16px; color:var(--o-dim); font-size:12.5px; line-height:1.7; font-family:var(--serif); }
+#boot.off-hold{ display:none; }
+html.lite .off-gate .og-shield{ animation:none; }
+@media (max-width:640px){
+  #office{ font-size:11.5px; }
+  .off-foot .of-prog{ max-width:110px; }
+  .oa-ref{ min-width:auto; }
+  .oa-name{ font-size:10.5px; }
+  .od-meta .odm dd{ text-align:right; }
+}
+@media print{
+  #office,#offDoc{ display:none !important; }
+}
 </style>
 </head>
 <body>
@@ -654,6 +871,18 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
     <line x1="24" y1="44.5" x2="24" y2="41.5"/><line x1="10.0" y1="40.0" x2="12.0" y2="38.3"/>
     <line x1="4.5" y1="24" x2="7.5" y2="24"/><line x1="10.0" y1="8.0" x2="12.0" y2="9.7"/>
     <line x1="24" y1="13.5" x2="24" y2="16.5"/>
+  </g>
+</symbol>
+<symbol id="o5Seal" viewBox="0 0 48 48">
+  <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="6" opacity=".12"/>
+  <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="2.4"/>
+  <circle cx="24" cy="24" r="8.6" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".55"/>
+  <circle cx="24" cy="24" r="6.4" fill="currentColor"/>
+  <circle cx="24" cy="24" r="4.2" fill="none" stroke="#04070a" stroke-width="1.5" opacity=".8"/>
+  <g class="o5-dots" fill="#eef5f9">
+    <circle cx="24" cy="11.8" r="2.7"/>
+    <circle cx="13.44" cy="30.1" r="2.7"/>
+    <circle cx="34.56" cy="30.1" r="2.7"/>
   </g>
 </symbol>
 </defs></svg>
@@ -714,7 +943,6 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
   <button type="button" class="chip btn" id="btnClose" title="Close the dossier folder">✕ Close</button>
   <span class="chip label-extra">DOSSIER <b id="chipRef">O5CD-04</b></span>
   <span class="chip label-extra">REV <b id="chipRev">8</b></span>
-  <span class="chip label-extra">AUDIO <b>ON</b></span>
 </header>
 </div>
 
@@ -767,7 +995,7 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
 </div>
 
 <!-- =========================== BOOT =========================== -->
-<div id="boot">
+<div id="boot" class="off-hold">
   <div class="boot-frame">
     <div class="boot-bar">
       <span class="bb-l"><span class="lamp"></span>ARCHIVE NINE ACCESS TERMINAL</span>
@@ -784,6 +1012,33 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
       <span class="boot-hint" id="bootHint">click or press any key to skip</span>
     </div>
   </div>
+</div>
+
+<!-- =========================== OFFICE OF THE 4TH — SECURE TERMINAL =========================== -->
+<div id="office" aria-hidden="false">
+  <div class="off-frame">
+    <header class="off-bar">
+      <span class="ob-c" id="offStep">STANDBY</span>
+      <span class="ob-r" id="offClock">--:--:--</span>
+    </header>
+    <div class="off-body center" id="offBody" role="region" aria-live="polite" aria-label="Office of the Fourth secure terminal"></div>
+    <footer class="off-foot">
+      <span class="of-prog"><i id="offProg"></i></span>
+      <span id="offMeta">SESSION ----</span>
+      <span class="of-hint" id="offHint"></span>
+    </footer>
+  </div>
+</div>
+
+<!-- =========================== OFFICE DOCUMENT VIEWER =========================== -->
+<div id="offDoc" role="dialog" aria-modal="true" aria-label="Office of the Fourth restricted record">
+  <div class="od-bar">
+    <span class="od-t">OFFICE OF THE 4TH &middot; RESTRICTED RECORD</span>
+    <span>O5 EYES ONLY &middot; LEVEL 5</span>
+    <button type="button" class="od-back" id="offDocBack">&#8592; Return to archive</button>
+  </div>
+  <div class="od-body" id="offDocScroll"><div class="od-doc" id="offDocBody"></div></div>
+  <div class="off-mark"><span>CLASSIFIED</span><b>&#9679;</b><span>LEVEL 5</span><b>&#9679;</b><span>O5 EYES ONLY</span><b>&#9679;</b><span>NO FOREIGN DISSEMINATION</span></div>
 </div>
 
 <noscript>
@@ -994,6 +1249,96 @@ window.AN_CONTENT = {
       text:"Scope is widening faster than we can hold it. We were established to watch one seat. This file is two revisions past that." }
   }
 };
+</script>
+<!-- =========================================================================
+     OFFICE CONTENT  —  in-universe text for the Office of the Fourth only.
+     Kept separate from the engine, the same way AN_CONTENT is.
+     ========================================================================= -->
+<script id="off-content">
+(function(){
+  function p(x){ return '<p>' + x + '</p>'; }
+  function li(x){ return '<li>' + x + '</li>'; }
+  function ul(a){ return '<ul>' + a.join('') + '</ul>'; }
+  function sec(t, parts){ return '<section class="od-sec"><h2>' + t + '</h2>' + parts.join('') + '</section>'; }
+  function red(n){ var s = '', i; for(i = 0; i < n; i++) s += '\u2588'; return '<span class="od-bars">' + s + '</span>'; }
+  var RD = red(6);
+
+  window.AN_OFFICE = {
+    meta:{ title:"Office of the Fourth \u2014 Investigation Record", classification:"O5 EYES ONLY \u00b7 LEVEL 5" },
+
+    /* Document Two — the Office's own investigation record. Formal third-person. */
+    doc2:
+      '<div class="od-head">'
+    +   '<div class="odh-cls">O5 EYES ONLY \u00b7 LEVEL 5 \u00b7 O4/INV-AN</div>'
+    +   '<h1 class="odh-t">Office of the Fourth \u2014 Investigation Record</h1>'
+    +   '<div class="odh-s">Group-' + RD + ', self-designated \u201cArchive Nine\u201d (A.N.) \u00b7 status: open \u00b7 no terminal action</div>'
+    + '</div>'
+    + '<dl class="od-meta">'
+    +   '<div class="odm"><dt>Reference</dt><dd>O4-INV/AN-' + red(3) + ' \u00b7 revision 3</dd></div>'
+    +   '<div class="odm"><dt>Issuing office</dt><dd>Office of the Fourth \u00b7 O5-4</dd></div>'
+    +   '<div class="odm"><dt>Classification</dt><dd>O5 EYES ONLY \u00b7 LEVEL 5</dd></div>'
+    +   '<div class="odm"><dt>Subject</dt><dd>Group-' + RD + ' (\u201cArchive Nine\u201d)</dd></div>'
+    +   '<div class="odm"><dt>Opened</dt><dd>' + red(4) + '-' + red(2) + '-' + red(2) + '</dd></div>'
+    +   '<div class="odm"><dt>Disposition</dt><dd>no terminal action</dd></div>'
+    + '</dl>'
+    + sec('Executive Summary', [
+        p('The Office of the Fourth opened this record to answer a single question: who is Archive Nine? The Group holds no charter this Office has recognised, is registered with no authority we can reach, and maintains a standing interest in this seat and in ' + red(2) + ' other Council seats. It has been reported operating, more than once, inside facilities it should not have been able to enter.'),
+        p('We have not identified them. Not a member, not a founder, not a funding line, not one verifiable address. Every line of inquiry has returned the same shape: material written as though by an organisation that knows us, held by an organisation we cannot find. The reason we have been unable to identify them is not known to this Office and is under continued investigation. Until it is resolved, no action to locate, seize, or terminate the Group will be authorised.')
+      ])
+    + sec('I. Subject of Interest', [
+        ul([
+          li('The Group styles itself \u201cArchive Nine\u201d. It compiles dossiers on Foundation personnel and, on the evidence, on this Council. Its material circulates in physical form; we have recovered no network trace of its authorship or its distribution.'),
+          li('Registry status: none. No charter, no founding instrument, no institutional footprint. Every attempt to place it within a known body has failed. ' + red(6) + '.'),
+          li('Interest: the Group has been reported in connection with this seat and with ' + red(2) + ' other seats. It has not attempted contact with any seat, and it has not acted on the material it holds.')
+        ])
+      ])
+    + sec('II. Methods and Attempts', [
+        ul([
+          li('Signals and network tracing: nil.'),
+          li('Registrar, archival, and registry cross-matching in ' + red(3) + ' jurisdictions: nil.'),
+          li('Covert observation of sites attributed to the Group: abandoned, cleaned, or never occupied.'),
+          li('Interview of persons claiming to have dealt with them: accounts inconsistent; several subjects were subsequently ' + red(5) + '.')
+        ]),
+        p('In every case the trail terminates at material that is internally consistent and externally unattributable. The obstacle is not a shortage of leads. It is that the leads do not converge.')
+      ])
+    + sec('III. Findings', [
+        ul([
+          li('The Group\u2019s methods demonstrate access to Foundation information at a level that should not exist outside this Council.'),
+          li('Its dossiers show detailed knowledge of individual Council subjects, including personal detail that is not recorded anywhere we can locate. ' + red(4) + '.'),
+          li('One item recurs across recovered accounts: an antique silver pocket watch on a dark chain, carried by the figure the Group treats as its principal subject. Accounts describe the hands as erratic and the subject as understanding them. The Group\u2019s own notes call it \u201cThe Stopped Watch\u201d and assess it as some form of reality anchor. This Office has not recovered the item and cannot confirm its function. Whatever the Group believes follows its removal, the Group does not appear to know the outcome.'),
+          li('Recovered Group material refers to a body it calls the \u201cOffice of Records Integrity\u201d. That body is a cover of this Office; only this Office knows it to be one. The Group holds at most one unverified fragment concerning it, and that fragment is ' + red(6) + '.')
+        ])
+      ])
+    + sec('IV. Assessment', [
+        p('Archive Nine is best understood not as an adversary but as an unregistered observer with a deliberate interest in this seat. It has taken material it did not need; it has not acted on it. The single obstacle to every available course of action remains identification. We cannot terminate what we cannot name, and we cannot name them.'),
+        p('The seat of the Fourth does not sit outside this matter. Its interest in Archive Nine is not solely institutional, and the grounds for that interest are recorded separately at this clearance.')
+      ])
+    + sec('V. Recommended Action', [
+        ul([
+          li('No terminal action is authorised. Sustain observation and preserve this record.'),
+          li('Continue identification attempts under standing authority.'),
+          li('Treat any approach from the Group as unverified until identification is achieved.')
+        ])
+      ])
+    + '<div class="od-note"><b>Held at the Office of the Fourth.</b> This record is not circulated, and is not to be acknowledged outside this clearance.</div>'
+    + '<div class="od-sign"><b>Authorised \u00b7 O5-4</b><br>Office of the Fourth \u00b7 O5 EYES ONLY \u00b7 logged to RAISA<br>The reason for the Group\u2019s resistance to identification is not known to this Office and remains under investigation.</div>',
+
+    /* sealed record 1 — O5-4's personal notes (content not yet compiled) */
+    notes:
+      '<div class="od-hold">'
+    +   '<div class="odh-big">record incomplete \u00b7 compilation pending</div>'
+    +   '<p class="odh-p">Level 5 verification is complete, but this record has not yet been transferred to the terminal. It exists; it is not here. Return once the Office has compiled it.</p>'
+    +   '<div class="od-note"><b>Clearance verified:</b> O5-4@SCIPNET \u00b7 access logged to RAISA.</div>'
+    + '</div>',
+
+    /* sealed record 2 — O5-4 personnel file (reserved, not compiled) */
+    personnel:
+      '<div class="od-hold">'
+    +   '<div class="odh-big amber">access denied \u00b7 file not yet compiled</div>'
+    +   '<p class="odh-p">This record is reserved and empty. No personnel file for the seat of the Fourth has been compiled at this terminal. Verification succeeded; there is nothing yet to read.</p>'
+    + '</div>'
+  };
+})();
 </script>
 <!-- =========================================================================
      ENGINE  —  presentation + behaviour only. No in-universe text lives here.
@@ -1790,6 +2135,24 @@ var Sound = (function(){
     grant:function(){ thunk(0.10, 108); setTimeout(function(){ if(!api._done) clack(0.05, 300, 5); }, 130); setTimeout(function(){ if(!api._done) clack(0.045, 250, 5); }, 240); setTimeout(function(){ if(!api._done) clack(0.04, 355, 5); }, 335); setTimeout(function(){ if(!api._done) { voice("sawtooth", 46, 1.5, 0.020, 62); voice("sine", 92, 1.4, 0.014, 124); } }, 130); },
     open:function(){ clack(0.034, 300, 5); whir(0.16, 300, 660, 0.013, 3); },
     close:function(){ clack(0.03, 180, 4); },
+    /* ---- Office of the 4th cues: colder, quieter, closer to a person than a machine ---- */
+    breathe:function(dur, vol){
+      if(!ensure()) return; var t = ctx.currentTime, span = dur || 1.5;
+      var o = ctx.createOscillator(); o.type = "sine";
+      o.frequency.setValueAtTime(56, t); o.frequency.linearRampToValueAtTime(62, t + span * 0.45);
+      o.frequency.linearRampToValueAtTime(50, t + span);
+      var g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol || 0.012, t + span * 0.42);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + span);
+      o.connect(g); g.connect(bus); o.start(t); o.stop(t + span + 0.04);
+      burst(0.013, 640, 0.6, span * 0.92, 360);
+    },
+    sigh:function(){ whir(0.95, 430, 150, 0.02, 1.6); voice("sine", 132, 0.8, 0.010, 92); },
+    press:function(){ clack(0.05, 205 + Math.random() * 70, 6); },
+    scan:function(){ whir(0.72, 300, 1480, 0.02, 2.2); voice("sine", 470, 0.6, 0.008, 1180); },
+    secure:function(){ voice("square", 660, 0.06, 0.02, null, 5);
+      setTimeout(function(){ if(!api._done) voice("square", 990, 0.09, 0.018, null, -4); }, 92); },
+    deny:function(){ buzz(178, 0.16, 0.032); setTimeout(function(){ if(!api._done) buzz(88, 0.42, 0.036); }, 150); },
     /* paper: lift + rustle + settle, synced loosely to the turn animation */
     turn:function(dir){
       whir(0.22, dir > 0 ? 700 : 1000, dir > 0 ? 2400 : 1800, 0.016, 1.5);
@@ -2083,7 +2446,6 @@ function boot(){
     var gsl = out.querySelector(".boot-gate .seal"), gsrc = document.querySelector(".brand .glyph");
     if(gsl && gsrc) gsl.appendChild(gsrc.cloneNode(true));
     var gateBtn = out.querySelector("#gateBtn");
-    hint.textContent = "audio on";
     var open = false;
     function go(ev){
       if(open) return; open = true;
@@ -2178,6 +2540,362 @@ function initAtmosphere(){
     }, { passive:true });
   }
 }
+/* ------------------------------------------------------- office of the 4th */
+/* The Office of the Fourth host terminal runs first. It boots, opens the Restricted
+   Archive, and either hands off to the Group's own terminal or opens an Office record.
+   Sealed records pass a Level 5 confirmation and an automatic clearance sequence. */
+function officeBoot(){
+  var root = document.getElementById("office");
+  var bootEl = document.getElementById("boot");
+  if(!root){ if(bootEl) bootEl.classList.remove("off-hold"); boot(); return; }
+  var body = document.getElementById("offBody");
+  var stepEl = document.getElementById("offStep");
+  var prog = document.getElementById("offProg");
+  var meta = document.getElementById("offMeta");
+  var hint = document.getElementById("offHint");
+  var clock = document.getElementById("offClock");
+  var docEl = document.getElementById("offDoc");
+  var docScroll = document.getElementById("offDocScroll");
+  var docBody = document.getElementById("offDocBody");
+  var rm = reducedMotion();
+
+  function pad2(n){ return (n < 10 ? "0" : "") + n; }
+  function hx(n){ var s = "", k; for(k = 0; k < n; k++) s += "0123456789ABCDEF"[Math.floor(Math.random() * 16)]; return s; }
+  function clockNow(){ var d = new Date(); return pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ":" + pad2(d.getSeconds()); }
+  function bars(n){ var s = "", k; for(k = 0; k < n; k++) s += "\u2588"; return s; }
+  function hold(ms, fn){ return setTimeout(fn, rm ? 18 : ms); }
+  function setBody(html){ body.scrollTop = 0; body.innerHTML = html; return body; }
+  function addLine(html, cls){ var d = document.createElement("div"); d.className = "off-line" + (cls ? " " + cls : ""); d.innerHTML = html; return d; }
+  function push(node){ var l = document.getElementById("offLog"); if(!l) return;
+    l.appendChild(node); while(l.children.length > 40) l.removeChild(l.firstChild); l.scrollTop = l.scrollHeight; }
+
+  clock.textContent = clockNow();
+  setInterval(function(){ clock.textContent = clockNow(); }, 1000);
+  meta.textContent = "SESSION 0x" + hx(6);
+
+  /* ---- the Office document viewer ---- */
+  var docFromClearance = false;
+  function openDoc(which, fromClearance){
+    docFromClearance = !!fromClearance;
+    var d = window.AN_OFFICE || {};
+    docBody.innerHTML = d[which] || '<div class="od-hold"><div class="odh-big">record unavailable</div></div>';
+    docEl.classList.add("show"); docEl.setAttribute("aria-hidden", "false");
+    if(docScroll) docScroll.scrollTop = 0;
+    Sound.open();
+    var bk = document.getElementById("offDocBack");
+    if(bk){ try{ bk.focus({ preventScroll:true }); }catch(e){ bk.focus(); } }
+  }
+  function closeDoc(){
+    docEl.classList.remove("show"); docEl.setAttribute("aria-hidden", "true"); Sound.close();
+    /* a record opened through clearance leaves the clearance log behind: return to the archive */
+    if(docFromClearance){ docFromClearance = false; showFolder(true); }
+  }
+  var docBack = document.getElementById("offDocBack");
+  if(docBack) docBack.addEventListener("click", closeDoc);
+  document.addEventListener("keydown", function(ev){ if(ev.key === "Escape" && docEl.classList.contains("show")) closeDoc(); });
+
+  /* ---- 1. the gate ---- */
+  function showGate(){
+    stepEl.textContent = "STANDBY"; prog.style.width = "0%"; hint.textContent = "";
+    setBody('<div class="off-gate">'
+      + '<div class="og-shield"><svg aria-hidden="true" focusable="false"><use href="#o5Seal"/></svg></div>'
+      + '<div class="og-t">Office of the Fourth</div>'
+      + '<div class="og-s">Secure access terminal</div>'
+      + '<div class="og-s og-red">O5 EYES ONLY</div>'
+      + '<button type="button" class="og-b" id="offGateBtn"><i class="og-line" aria-hidden="true"></i>PRESS TO PROCEED</button>'
+      + '</div>');
+    var btn = document.getElementById("offGateBtn");
+    var opened = false;
+    function go(ev){
+      if(opened) return; opened = true;
+      if(ev && ev.stopPropagation) ev.stopPropagation();
+      if(btn) btn.removeEventListener("click", go);
+      Sound.start(); Sound.press(); Sound.breathe();
+      if(rm){ showFolder(true); return; }
+      startBoot();
+    }
+    if(btn){
+      btn.addEventListener("click", go);
+      try{ btn.focus({ preventScroll:true }); }catch(e){ btn.focus(); }
+    }
+  }
+
+  /* ---- 2. the automatic boot sequence ---- */
+  var oseq = [
+    {p:"step", s:"HANDSHAKE"},
+    {p:"line", s:"OFFICE OF THE FOURTH  \u00b7  secure terminal 5.2.1", c:"banner"},
+    {p:"line", s:"classified channel \u00b7 weak ciphers refused", c:"dim"},
+    {p:"wait", dur:180},
+    {p:"type", s:"POST  secure enclave ............ ok", c:"dim", sp:8},
+    {p:"type", s:"POST  tamper monitor ............ ok", c:"dim", sp:8},
+    {p:"line", s:"POST  rf shield ................. closed", c:"ok"},
+    {p:"sound", s:"breathe"},
+    {p:"spin", label:"reading interface token", tail:"slot 4", dur:820, done:"[ ok ] token accepted"},
+    {p:"step", s:"IDENTITY"},
+    {p:"prog", v:18},
+    {p:"line", s:"      operator     O5-4", c:"acc"},
+    {p:"line", s:"      clearance    LEVEL 5 \u00b7 O5 \u00b7 RAISA", c:"dim"},
+    {p:"sound", s:"sigh"},
+    {p:"step", s:"BIOMETRIC"},
+    {p:"prog", v:38},
+    {p:"spin", label:"fingerprint", tail:"peripheral 1", dur:760, done:"[ ok ] match"},
+    {p:"sound", s:"press"},
+    {p:"spin", label:"retinal", tail:"scanner 2", dur:760, done:"[ ok ] match"},
+    {p:"sound", s:"scan"},
+    {p:"step", s:"BRIEFING"},
+    {p:"prog", v:60},
+    {p:"type", s:"mounting restricted archive .....", c:"dim", sp:8},
+    {p:"line", s:"      holdings     4 records \u00b7 2 sealed", c:"dim"},
+    {p:"sound", s:"secure"},
+    {p:"wait", dur:240},
+    {p:"step", s:"GRANT"},
+    {p:"prog", v:100},
+    {p:"line", s:"OFFICE OF THE 4TH  \u00b7  ACCESS GRANTED", c:"banner"},
+    {p:"line", s:"welcome, O5-4@SCIPNET", c:"acc"}
+  ];
+  var seqI = 0;
+  function startBoot(){
+    seqI = 0;
+    setBody('<div class="off-log" id="offLog"></div>');
+    hint.textContent = "secure channel \u00b7 do not interrupt";
+    next();
+  }
+  function next(){ if(seqI >= oseq.length){ hold(520, showWelcome); return; } runStep(oseq[seqI++], next); }
+  function runStep(st, cb){
+    switch(st.p){
+      case "step": stepEl.textContent = st.s; Sound.relay(); return cb();
+      case "prog": prog.style.width = st.v + "%"; return cb();
+      case "sound": if(Sound[st.s]) Sound[st.s](); return cb();
+      case "wait": return hold(st.dur, cb);
+      case "line": push(addLine(esc(st.s), st.c)); return hold(70, cb);
+      case "type": return typeLine(st, cb);
+      case "spin": return spinLine(st, cb);
+      default: return cb();
+    }
+  }
+  function typeLine(st, cb){
+    var d = addLine("", st.c); push(d); var s = st.s, j = 0;
+    if(rm){ d.textContent = s; return hold(16, cb); }
+    (function tick(){ j++; d.innerHTML = esc(s.slice(0, j)) + '<span class="caret"></span>'; if(j % 3 === 0) Sound.key();
+      if(j >= s.length){ d.textContent = s; return setTimeout(cb, 80); } setTimeout(tick, st.sp || 12); })();
+  }
+  function spinLine(st, cb){
+    var d = addLine(""); push(d); var frames = ["|","/","-","\\"], f = 0, t0 = Date.now(), span = rm ? 0 : st.dur;
+    if(!rm) Sound.drv();
+    (function frame(){ d.innerHTML = '<span class="bar">[' + frames[f++ % 4] + ']</span> ' + esc(st.label) + (st.tail ? "  " + esc(st.tail) : "");
+      if(Date.now() - t0 >= span){ d.innerHTML = esc(st.done || ("[ ok ] " + st.label)); Sound.relay(); return hold(80, cb); } setTimeout(frame, 78); })();
+  }
+
+  /* ---- 3. welcome, then the closed case folder ---- */
+  function showWelcome(){
+    stepEl.textContent = "WELCOME"; hint.textContent = "";
+    setBody('<div class="off-welcome">'
+      + '<div class="ow-big">WELCOME</div>'
+      + '<div class="ow-id">O5-4@SCIPNET</div>'
+      + '<div class="ow-sub">office of the fourth \u00b7 level 5 \u00b7 session logged</div>'
+      + '</div>');
+    Sound.secure(); Sound.sigh();
+    hold(2600, function(){ showFolder(false); });
+  }
+  function archiveHTML(){
+    function entry(id, ref, name, st, cls, lamp){
+      return '<li><button type="button" class="oa-entry ' + (cls || '') + '" data-off="' + id + '">'
+        + '<span class="oa-ref">' + ref + '</span><span class="oa-name">' + name + '</span>'
+        + (lamp ? '<span class="oa-lamp" aria-hidden="true"></span>' : '')
+        + '<span class="oa-st">' + st + '</span></button></li>';
+    }
+    return '<div class="off-arch">'
+      + '<div class="oa-h">Office of the 4th \u2014 Restricted Archive</div>'
+      + '<div class="oa-s">Records held at this terminal. Sealed entries require a Level 5 confirmation.</div>'
+      + '<ul class="oa-list">'
+      + entry('group', 'GROUP-' + bars(6), 'CODENAME: ARCHIVE NINE \u00b7 O5-4 INVESTIGATION', 'OPEN', 'open')
+      + entry('office', 'O4/INV-AN', 'OFFICE OF THE 4TH \u00b7 INVESTIGATION RECORD', 'OPEN', 'open')
+      + entry('notes', bars(8), bars(14) + ' \u00b7 ' + bars(6), 'LOCKED', 'locked', true)
+      + entry('personnel', bars(6), bars(10) + ' \u00b7 ' + bars(8), 'LOCKED', 'locked', true)
+      + '</ul></div>';
+  }
+  function showFolder(alreadyOpen){
+    stepEl.textContent = "RESTRICTED ARCHIVE"; prog.style.width = "100%";
+    hint.textContent = alreadyOpen ? "" : "press the folder to open";
+    setBody('<div class="off-folder" id="offFolder">'
+      + '<div class="ofc-inner">'
+      +   '<div class="ofc-inside">' + archiveHTML() + '</div>'
+      +   '<div class="ofc-cover" role="button" tabindex="0" aria-label="Open the Restricted Archive">'
+      +     '<div class="ofc-face">'
+      +       '<div class="ofc-seal"><svg aria-hidden="true" focusable="false"><use href="#o5Seal"/></svg></div>'
+      +       '<div class="ofc-name">Office of the 4th</div>'
+      +       '<div class="ofc-doc">Restricted Archive</div>'
+      +       '<div class="ofc-ref">O5 EYES ONLY \u00b7 LEVEL 5</div>'
+      +     '</div>'
+      +     '<div class="ofc-face-back"></div>'
+      +   '</div>'
+      + '</div>'
+      + '<div class="ofc-hint" id="offFolderHint">press the folder to open</div>'
+      + '</div>');
+    var folder = document.getElementById("offFolder");
+    var cover = folder.querySelector(".ofc-cover");
+    var opened = false;
+    function openFolder(){
+      if(opened) return; opened = true;
+      folder.classList.add("open"); folder.classList.remove("armed");
+      var h = document.getElementById("offFolderHint"); if(h) h.textContent = "select a record";
+      Sound.open(); Sound.turn(1);
+    }
+    cover.addEventListener("click", openFolder);
+    cover.addEventListener("keydown", function(ev){
+      if(ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar"){ ev.preventDefault(); openFolder(); }
+    });
+    folder.addEventListener("click", function(ev){
+      if(!opened) return;
+      var b = ev.target.closest ? ev.target.closest("[data-off]") : null;
+      if(!b) return;
+      Sound.press();
+      var id = b.getAttribute("data-off");
+      if(id === "group") handOff();
+      else if(id === "office") openDoc("doc2");
+      else confirmStage(id);
+    });
+    folder.classList.add("armed");
+    if(alreadyOpen){
+      opened = true; folder.classList.remove("armed"); folder.classList.add("open");
+      var h2 = document.getElementById("offFolderHint"); if(h2) h2.textContent = "select a record";
+    }
+  }
+
+  /* ---- 4a. hand off to the Group's own terminal ---- */
+  function handOff(){
+    stepEl.textContent = "TRANSFER"; hint.textContent = "";
+    setBody('<div class="off-clear">'
+      + '<div class="ocl-step"><span>transfer</span></div>'
+      + '<div class="ocl-line"><span class="ocl-label">GROUP-' + bars(6) + ' \u00b7 CODENAME: ARCHIVE NINE</span></div>'
+      + '<div class="ocl-line"><span class="ocl-label">handing off to the Archive Nine access terminal \u2026</span></div>'
+      + '</div>');
+    Sound.secure();
+    hold(1300, function(){
+      root.classList.add("gone");
+      hold(1000, function(){
+        root.style.display = "none"; root.setAttribute("aria-hidden", "true");
+        if(bootEl) bootEl.classList.remove("off-hold");
+        boot();
+      });
+    });
+  }
+
+  /* ---- 4b. sealed record: confirm, then the clearance sequence ---- */
+  function confirmStage(id){
+    stepEl.textContent = "CONFIRM"; hint.textContent = "";
+    var nm = id === "notes" ? (bars(8) + ' \u00b7 ' + bars(12)) : (bars(6) + ' \u00b7 ' + bars(10));
+    setBody('<div class="off-confirm">'
+      + '<div class="oc-w">\u26a0 confirmed access required</div>'
+      + '<div class="oc-file">SEALED RECORD &nbsp; ' + nm + '</div>'
+      + '<div class="oc-ask">ARE YOU SURE YOU WANT TO ACCESS THIS FILE?</div>'
+      + '<div class="oc-btns">'
+      +   '<button type="button" class="off-btn" data-cf="yes">Yes, proceed</button>'
+      +   '<button type="button" class="off-btn danger" data-cf="no">No, return</button>'
+      + '</div></div>');
+    Sound.warn();
+    var wrap = body.querySelector(".off-confirm");
+    wrap.addEventListener("click", function(ev){
+      var b = ev.target.closest ? ev.target.closest("[data-cf]") : null; if(!b) return;
+      if(b.getAttribute("data-cf") === "yes"){ Sound.press(); clearance(id); }
+      else { Sound.relay(); showFolder(true); }   /* No returns to the Restricted Archive */
+    });
+    var y = wrap.querySelector('[data-cf="yes"]');
+    if(y){ try{ y.focus({ preventScroll:true }); }catch(e){ y.focus(); } }
+  }
+  function clearance(id){
+    stepEl.textContent = "CLEARANCE"; prog.style.width = "0%"; hint.textContent = "";
+    setBody('<div class="off-clear" id="offClear"></div>');
+    var box = document.getElementById("offClear"), TOTAL = 7;
+    function head(n, label){
+      var h = document.createElement("div"); h.className = "ocl-step";
+      h.innerHTML = '<span class="ocl-n">' + n + ' / ' + TOTAL + '</span><span>' + label + '</span>';
+      box.appendChild(h); box.scrollTop = box.scrollHeight;
+    }
+    function cl(html, klass){
+      var d = document.createElement("div"); d.className = "ocl-line" + (klass ? " " + klass : "");
+      d.innerHTML = html; box.appendChild(d); box.scrollTop = box.scrollHeight; return d;
+    }
+    function dots(node, n, cb){
+      if(!node) return cb();
+      var k = 0;
+      if(rm){ node.textContent = new Array(n + 1).join("\u2022"); return hold(20, cb); }
+      (function tick(){ k++; node.textContent = new Array(k + 1).join("\u2022");
+        if(k % 2 === 0) Sound.key();
+        if(k >= n) return setTimeout(cb, 240); setTimeout(tick, 52); })();
+    }
+    /* 1 — classification warning */
+    head(1, "classification");
+    var w = document.createElement("div"); w.className = "ocl-warn";
+    w.innerHTML = '<div class="ocl-wt">WARNING: THE FOLLOWING INFORMATION IS CLASSIFIED (LEVEL 5)</div>'
+      + '<div class="ocl-ws">Failure to abide by security clearance may result in termination.</div>';
+    box.appendChild(w); Sound.warn(); prog.style.width = "12%";
+    hold(2400, step2);
+
+    function step2(){                                  /* 2 — credentials */
+      head(2, "security credentials");
+      var l1 = cl('<span class="ocl-label">PLEASE ENTER SECURITY CREDENTIALS (LEVEL 5):</span> <span class="ocl-val" data-dots></span>');
+      dots(l1.querySelector("[data-dots]"), 14, function(){
+        cl('<span class="ocl-bad">_login failed</span>');
+        Sound.deny();
+        hold(950, function(){
+          var l2 = cl('<span class="ocl-label">PLEASE ENTER SECURITY CREDENTIALS (LEVEL 5):</span> <span class="ocl-val" data-dots></span>');
+          prog.style.width = "26%";
+          dots(l2.querySelector("[data-dots]"), 14, function(){
+            cl('<span class="ocl-ok">_confirmed</span>');
+            Sound.secure(); Sound.breathe();
+            hold(900, step3);
+          });
+        });
+      });
+    }
+    function step3(){                                  /* 3 — fingerprint */
+      head(3, "biometric \u00b7 fingerprint");
+      cl('<span class="ocl-label">PLEASE INSERT BIOMETRICS PERIPHERAL TO CONTINUE</span>');
+      Sound.press();
+      hold(700, function(){
+        cl('<span class="ocl-label">PRESS CONFIGURED FINGER INTO PERIPHERAL NOW.</span>');
+        prog.style.width = "40%";
+        hold(1150, function(){
+          cl('<span class="ocl-ok">_confirmed</span>');
+          Sound.secure(); Sound.breathe();
+          hold(850, step4);
+        });
+      });
+    }
+    function step4(){                                  /* 4 — retinal scan */
+      head(4, "biometric \u00b7 retinal scan");
+      cl('<span class="ocl-label">PLEASE LOOK INTO RETINAL SCANNER NOW</span>');
+      prog.style.width = "54%"; Sound.scan();
+      hold(1550, function(){
+        cl('<span class="ocl-ok">_confirmed</span>');
+        Sound.secure(); Sound.sigh();
+        hold(850, step5);
+      });
+    }
+    function step5(){                                  /* 5 — identity */
+      head(5, "identity");
+      cl('<span class="ocl-id">WELCOME, O5-4@SCIPNET</span>');
+      prog.style.width = "68%"; Sound.secure();
+      hold(1300, step6);
+    }
+    function step6(){                                  /* 6 — access log */
+      head(6, "access log");
+      cl('<span class="ocl-label">THE TIME AND DATE OF YOUR ACCESS TO THIS FILE HAS BEEN LOGGED</span>');
+      cl('<span class="ocl-label">AND REPORTED TO THE RECORDS AND INFORMATION SECURITY</span>');
+      cl('<span class="ocl-label">ADMINISTRATION (RAISA).</span>');
+      prog.style.width = "84%";
+      hold(1700, step7);
+    }
+    function step7(){                                  /* 7 — the record */
+      head(7, "file");
+      prog.style.width = "100%"; Sound.open();
+      hold(750, function(){ stepEl.textContent = "RECORD"; openDoc(id === "notes" ? "notes" : "personnel", true); });
+    }
+  }
+
+  showGate();
+}
 function init(){
   book = document.getElementById("book");
   tabsEl = document.getElementById("pageTabs");
@@ -2202,7 +2920,7 @@ function init(){
   initAtmosphere();
   relayout();
   window.addEventListener("resize", scheduleRelayout);
-  boot();
+  officeBoot();
 }
 if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
 else init();
