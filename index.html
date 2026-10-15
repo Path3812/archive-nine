@@ -362,6 +362,7 @@ html.lite .leaf-back::after{ animation:none; }
 .boot-side .sh{ color:var(--chrome-2); text-transform:uppercase; letter-spacing:.2em; font-size:9.5px; border-bottom:1px solid #28200f; padding-bottom:6px; margin-bottom:9px; }
 .boot-side .row{ display:flex; justify-content:space-between; gap:10px; margin:4px 0; }
 .boot-side .row b{ color:var(--steel); font-weight:400; font-variant-numeric:tabular-nums; }
+.boot-side .row b .bar{ color:var(--chrome-2); }
 .boot-line{ white-space:pre-wrap; word-break:break-word; }
 .boot-line.dim{ color:var(--steel-dim); } .boot-line.ok{ color:#8fbf7a; } .boot-line.warn{ color:#e0b45f; }
 .boot-line.bad{ color:#e0765f; } .boot-line.banner{ color:var(--chrome); letter-spacing:.2em; }
@@ -2352,7 +2353,7 @@ function boot(){
     side.innerHTML =
       '<div class="sh">Session</div>' +
       '<div class="row"><span>ID</span><b>' + SID + '</b></div>' +
-      '<div class="row"><span>Operator</span><b>UNIDENTIFIED</b></div>' +
+      '<div class="row"><span>Operator</span><b><span class="bar">██████ ██████</span></b></div>' +
       '<div class="row"><span>Clearance</span><b>NONE</b></div>' +
       '<div class="row"><span>Token</span><b>' + TOK + '</b></div>' +
       '<div class="sh" style="margin-top:14px">Machine</div>' +
