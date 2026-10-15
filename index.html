@@ -760,6 +760,25 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
 /* ---- the restricted archive (inside the folder) ---- */
 .off-arch .oa-h{ letter-spacing:.28em; text-transform:uppercase; color:var(--o-white); font-size:11.5px; }
 .off-arch .oa-s{ color:var(--o-dim); font-size:10.5px; line-height:1.5; margin:7px 0 13px; }
+/* the blocked clearance word: an occasional, brief glitch — never enough to obscure the line */
+.oa-glitch{ position:relative; display:inline-block; color:inherit; letter-spacing:.02em; }
+.oa-glitch::before,.oa-glitch::after{ content:attr(data-rt); position:absolute; left:0; top:0; opacity:0; pointer-events:none; }
+.oa-glitch::before{ color:#ff4130; animation:oaG1 3.6s steps(1) infinite; }
+.oa-glitch::after{ color:#3fc9ff; animation:oaG2 4.3s steps(1) infinite; }
+@keyframes oaG1{
+  0%,90%,100%{ opacity:0; transform:translate(0,0); clip-path:inset(0 0 0 0); }
+  91%{ opacity:.7; transform:translate(-1px,-1px); clip-path:inset(0 0 62% 0); }
+  93%{ opacity:.55; transform:translate(1px,0); clip-path:inset(28% 0 30% 0); }
+  95%{ opacity:.65; transform:translate(-1px,1px); clip-path:inset(62% 0 0 0); }
+}
+@keyframes oaG2{
+  0%,93%,100%{ opacity:0; transform:translate(0,0); clip-path:inset(0 0 0 0); }
+  94%{ opacity:.65; transform:translate(1px,1px); clip-path:inset(40% 0 22% 0); }
+  96%{ opacity:.5; transform:translate(-1px,0); clip-path:inset(0 0 70% 0); }
+}
+@media (prefers-reduced-motion: reduce){ .oa-glitch::before,.oa-glitch::after{ animation:none; } }
+html.lite .oa-glitch::before{ animation-duration:6.5s; }
+html.lite .oa-glitch::after{ animation-duration:7.5s; }
 .oa-list{ list-style:none; margin:0; padding:0; display:grid; gap:6px; }
 .oa-entry{ display:flex; align-items:center; gap:12px; width:100%; text-align:left; font:inherit; color:var(--o-ink);
   cursor:pointer; padding:10px 12px; border:1px solid var(--o-line); border-left:3px solid var(--o-line-2);
@@ -815,6 +834,15 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
 .od-bar .od-back{ margin-right:auto; font:inherit; font-size:10px; letter-spacing:.2em; text-transform:uppercase;
   color:var(--o-acc); background:#0a1218; border:1px solid var(--o-acc-2); border-radius:2px; padding:6px 12px; cursor:pointer; }
 .od-bar .od-back:hover,.od-bar .od-back:focus-visible{ background:#0d1a22; color:#bfe0f2; outline:none; }
+/* ---- the shared "return" control: Office system style, used by the Office archive and the Group file ---- */
+.ret{ font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; cursor:pointer;
+  color:#8ec2de; background:#0a1218; border:1px solid #4f7f9d; border-radius:2px; padding:6px 12px; white-space:nowrap;
+  transition:background .2s,color .2s,border-color .2s,box-shadow .2s; }
+.ret:hover,.ret:focus-visible{ background:#0d1a22; color:#bfe0f2; border-color:#8ec2de; outline:none;
+  box-shadow:0 0 24px -12px #8ec2de; }
+/* the archive's return control sits in the Office terminal header, shown only while the archive is up */
+.off-back{ display:none; }
+#office.arch .off-back{ display:inline-block; }
 .od-body{ flex:1 1 auto; min-height:0; overflow:auto; padding:clamp(16px,4vw,44px); }
 .od-doc{ max-width:840px; margin:0 auto; }
 .od-head{ border-bottom:1px solid var(--o-line-2); padding-bottom:14px; margin-bottom:18px; }
@@ -934,6 +962,7 @@ html.lite .off-gate .og-shield{ animation:none; }
 <!-- =========================== TOP BAR =========================== -->
 <div class="chrome">
 <header class="top" role="banner">
+  <button type="button" class="ret" id="btnBackIndex" title="Return to the file index">&#8592; Return to file index</button>
   <div class="brand">
     <svg class="glyph" aria-hidden="true" focusable="false" role="img" aria-label="Archive Nine roundel"><use href="#anRoundel"/></svg>
     <span class="bname">ARCHIVE&nbsp;NINE · ACCESS&nbsp;TERMINAL</span>
@@ -1018,6 +1047,7 @@ html.lite .off-gate .og-shield{ animation:none; }
 <div id="office" aria-hidden="false">
   <div class="off-frame">
     <header class="off-bar">
+      <button type="button" class="ret off-back" id="offArchBack" title="Return to the gate">&#8592; Return to gate</button>
       <span class="ob-c" id="offStep">STANDBY</span>
       <span class="ob-r" id="offClock">--:--:--</span>
     </header>
@@ -1966,6 +1996,46 @@ function folderClose(){
     folderArm();
   }, closeMs + 80);
 }
+
+/* ---- the black CRT screen shown while a file opens or closes ---- */
+function fileScreen(text, holdMs, tailSound, onDone){
+  if(document.getElementById("opening")) return;
+  var box = document.createElement("div");
+  box.id = "opening";
+  box.setAttribute("role","status"); box.setAttribute("aria-live","polite");
+  box.innerHTML = '<div class="op-inner"><div class="op-t">' + text + '</div><div class="op-bar"><i></i></div></div>';
+  document.body.appendChild(box);
+  Sound.drv();
+  setTimeout(function(){
+    box.classList.add("out");
+    if(tailSound && Sound[tailSound]) Sound[tailSound]();
+    setTimeout(function(){ if(box.parentNode) box.parentNode.removeChild(box); }, 850);
+    setTimeout(function(){ if(onDone) onDone(); }, 430);
+  }, holdMs || 2200);
+}
+/* ---- back out of the open Group file: the terminal's own file index returns ---- */
+var indexBackBusy = false;
+function fileIndexBack(){
+  if(indexBackBusy) return;
+  if(!document.body.classList.contains("revealed")) return;
+  var f = document.getElementById("folder");
+  if(!f || f.classList.contains("opening") || f.classList.contains("closing")) return;
+  indexBackBusy = true;
+  flushTurns(); syncFolderPage(); scrollFileTop(); positionFolder();
+  /* the file and the terminal cross over beneath the black CRT screen */
+  fileScreen("CLOSING DOCUMENT FILE\u2026", 1500, "close", function(){
+    indexBackBusy = false;
+    folderDisarm();
+    f.classList.remove("show","closed","opening","closing");
+    f.setAttribute("aria-hidden","true");
+    f.style.transition = ""; f.style.opacity = "";
+    document.body.classList.remove("revealed");
+    document.body.classList.remove("intro");
+    var bootEl = document.getElementById("boot");
+    if(bootEl){ bootEl.style.display = ""; bootEl.classList.remove("gone"); }
+    if(window.AN_GROUP_INDEX) window.AN_GROUP_INDEX();
+  });
+}
 function initFolder(){
   var f = document.getElementById("folder");
   if(!f) return;
@@ -2165,6 +2235,8 @@ var Sound = (function(){
 function boot(){
   var el = document.getElementById("boot");
   if(!el){ reveal(); return; }
+  /* the terminal can be re-entered after returning from the file index */
+  el.style.display = ""; el.classList.remove("gone");
   var out = document.getElementById("bootOut"), side = document.getElementById("bootSide"), stepEl = document.getElementById("bootStep");
   var prog = document.getElementById("bootProg"), meta = document.getElementById("bootMeta"), hint = document.getElementById("bootHint"), clock = document.getElementById("bootClock");
   var rm = reducedMotion(), done = false, i = 0, startedAt = 0;
@@ -2264,27 +2336,16 @@ function boot(){
       setTimeout(stageScreenOut, rm ? 200 : 1100);
     }
   }
+  /* the file index can be re-shown later: the open file's return control calls this */
+  window.AN_GROUP_INDEX = stageSelect;
   function stageScreenOut(){
     el.classList.add("gone"); Sound.close();
-    setTimeout(function(){ if(el.parentNode) el.remove(); }, 1250);
+    /* the terminal is kept — hidden, not removed — so the file can hand control back to it */
+    setTimeout(function(){ el.style.display = "none"; }, 1250);
     setTimeout(function(){ stageOpening(2200); }, 1750);
   }
   /* the black CRT "opening document" screen, then the folder opening onto the first page */
-  function stageOpening(hold){
-    if(document.getElementById("opening")) return;
-    var box = document.createElement("div");
-    box.id = "opening";
-    box.setAttribute("role","status"); box.setAttribute("aria-live","polite");
-    box.innerHTML = '<div class="op-inner"><div class="op-t">OPENING DOCUMENT FILE\u2026</div><div class="op-bar"><i></i></div></div>';
-    document.body.appendChild(box);
-    Sound.drv();
-    setTimeout(function(){
-      box.classList.add("out");
-      Sound.open();
-      setTimeout(function(){ if(box.parentNode) box.parentNode.removeChild(box); }, 850);
-      setTimeout(function(){ folderStage(); }, 430);
-    }, hold || 2200);
-  }
+  function stageOpening(hold){ fileScreen("OPENING DOCUMENT FILE\u2026", hold, "open", folderStage); }
   /* (folder open/close live at module scope: folderStage / folderOpen / folderClose) */
   function renderSide(){
     if(!side) return;
@@ -2435,7 +2496,7 @@ function boot(){
   }
   function armAudio(){ function go(){ Sound.start(); window.removeEventListener("pointerdown", go); window.removeEventListener("keydown", go); } window.addEventListener("pointerdown", go); window.addEventListener("keydown", go); }
 
-  if(rm){ el.remove(); reveal(); armAudio(); return; }
+  if(rm){ el.classList.add("gone"); el.style.display = "none"; reveal(); armAudio(); return; }
   renderSide(); meta.textContent = "SESSION " + SID;
   (function showGate(){
     stepEl.textContent = "STANDBY";
@@ -2496,6 +2557,7 @@ function initNav(){
   });
   var bc = document.getElementById("btnContents"); if(bc) bc.addEventListener("click", function(){ turnJump(pageIndexById("toc")); });
   var bcl = document.getElementById("btnClose"); if(bcl) bcl.addEventListener("click", folderClose);
+  var bbi = document.getElementById("btnBackIndex"); if(bbi) bbi.addEventListener("click", fileIndexBack);
 }
 function initGlitch(){
   if(reducedMotion()) return;
@@ -2591,8 +2653,14 @@ function officeBoot(){
   if(docBack) docBack.addEventListener("click", closeDoc);
   document.addEventListener("keydown", function(ev){ if(ev.key === "Escape" && docEl.classList.contains("show")) closeDoc(); });
 
+  /* ---- the archive's return control: up only while the archive is, and it goes back to the gate ---- */
+  function archBack(on){ if(root) root.classList.toggle("arch", !!on); }
+  var archBackBtn = document.getElementById("offArchBack");
+  if(archBackBtn) archBackBtn.addEventListener("click", function(){ Sound.relay(); showGate(); });
+
   /* ---- 1. the gate ---- */
   function showGate(){
+    archBack(false);
     stepEl.textContent = "STANDBY"; prog.style.width = "0%"; hint.textContent = "";
     setBody('<div class="off-gate">'
       + '<div class="og-shield"><svg aria-hidden="true" focusable="false"><use href="#o5Seal"/></svg></div>'
@@ -2652,6 +2720,7 @@ function officeBoot(){
   ];
   var seqI = 0;
   function startBoot(){
+    archBack(false);
     seqI = 0;
     setBody('<div class="off-log" id="offLog"></div>');
     hint.textContent = "secure channel \u00b7 do not interrupt";
@@ -2685,6 +2754,7 @@ function officeBoot(){
 
   /* ---- 3. welcome, then the closed case folder ---- */
   function showWelcome(){
+    archBack(false);
     stepEl.textContent = "WELCOME"; hint.textContent = "";
     setBody('<div class="off-welcome">'
       + '<div class="ow-big">WELCOME</div>'
@@ -2703,7 +2773,7 @@ function officeBoot(){
     }
     return '<div class="off-arch">'
       + '<div class="oa-h">Office of the 4th \u2014 Restricted Archive</div>'
-      + '<div class="oa-s">Records held at this terminal. Sealed entries require a Level 5 confirmation.</div>'
+      + '<div class="oa-s">Records held at this terminal. Sealed Entries Require <span class="oa-glitch" data-rt="' + bars(6) + '">' + bars(6) + '</span> Biometric Clearance.</div>'
       + '<ul class="oa-list">'
       + entry('group', 'GROUP-' + bars(6), 'CODENAME: ARCHIVE NINE \u00b7 O5-4 INVESTIGATION', 'OPEN', 'open')
       + entry('office', 'O4/INV-AN', 'OFFICE OF THE 4TH \u00b7 INVESTIGATION RECORD', 'OPEN', 'open')
@@ -2712,6 +2782,7 @@ function officeBoot(){
       + '</ul></div>';
   }
   function showFolder(alreadyOpen){
+    archBack(true);
     stepEl.textContent = "RESTRICTED ARCHIVE"; prog.style.width = "100%";
     hint.textContent = alreadyOpen ? "" : "press the folder to open";
     setBody('<div class="off-folder" id="offFolder">'
@@ -2761,6 +2832,7 @@ function officeBoot(){
 
   /* ---- 4a. hand off to the Group's own terminal ---- */
   function handOff(){
+    archBack(false);
     stepEl.textContent = "TRANSFER"; hint.textContent = "";
     setBody('<div class="off-clear">'
       + '<div class="ocl-step"><span>transfer</span></div>'
@@ -2780,6 +2852,7 @@ function officeBoot(){
 
   /* ---- 4b. sealed record: confirm, then the clearance sequence ---- */
   function confirmStage(id){
+    archBack(false);
     stepEl.textContent = "CONFIRM"; hint.textContent = "";
     var nm = id === "notes" ? (bars(8) + ' \u00b7 ' + bars(12)) : (bars(6) + ' \u00b7 ' + bars(10));
     setBody('<div class="off-confirm">'
@@ -2801,6 +2874,7 @@ function officeBoot(){
     if(y){ try{ y.focus({ preventScroll:true }); }catch(e){ y.focus(); } }
   }
   function clearance(id){
+    archBack(false);
     stepEl.textContent = "CLEARANCE"; prog.style.width = "0%"; hint.textContent = "";
     setBody('<div class="off-clear" id="offClear"></div>');
     var box = document.getElementById("offClear"), TOTAL = 7;
