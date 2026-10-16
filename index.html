@@ -1967,6 +1967,7 @@ function folderStage(){
   Sound.drv();
 }
 function folderOpen(){
+  Sound.real(false); Sound.scene();   /* the Group's record: still the Group's terminal */
   var f = document.getElementById("folder");
   if(!f || !f.classList.contains("ready") || f.classList.contains("opening")) return;
   syncFolderPage();                                            /* the folder's inner page matches whatever is on screen */
@@ -2155,6 +2156,9 @@ var Sound = (function(){
      lifts small signals about 1.6x, so 0.0257 lands on that same tick-to-key
      balance here. One number to move if the writing sound wants changing. */
   var TICK = 0.0257;
+  /* The recorded layer belongs to the Office terminal: the Group's terminal keeps
+     the sounds it always had, so the keyboard and the pointer switch on this. */
+  var realOn = false;
   function assets(){
     if(ASSETS) return ASSETS;
     var el = document.getElementById("snd-assets");
@@ -2331,10 +2335,37 @@ var Sound = (function(){
     var hg = ctx.createGain(); hg.gain.value = 0.005;
     ambient.connect(lp); lp.connect(g); g.connect(bus); hum.connect(hg); hg.connect(bus);
     ambient.start(); hum.start();
+    /* if the bed ever ends for any reason, bring it straight back */
+    ambient.onended = function(){ ambient = null; hum = null; if(!document.hidden) startAmbient(); };
+  }
+  /* The terminal's room tone must never lapse. A context can be suspended behind the
+     page's back — a phone locking, a tab switched away — and that would leave the
+     terminal silent for the rest of the session. Resume on return, and poll while the
+     page is visible: a suspended context gets resumed and a missing bed gets rebuilt. */
+  var watching = false;
+  function watch(){
+    if(watching || !ctx) return; watching = true;
+    setInterval(function(){
+      if(document.hidden || !ctx) return;
+      if(ctx.state !== "running"){ try{ ctx.resume(); }catch(e){} }
+      if(ctx.state === "running" && !ambient) startAmbient();
+    }, 3000);
+    document.addEventListener("visibilitychange", function(){
+      if(document.hidden || !ctx) return;
+      ensure(); startAmbient();
+      try{ if(ctx.state !== "running") ctx.resume(); }catch(e){}
+    });
+    window.addEventListener("focus", function(){ if(ctx){ ensure(); startAmbient(); } });
   }
   var api = {
-    start:function(){ ensure(); startAmbient(); preload(); },
+    start:function(){ ensure(); startAmbient(); preload(); watch(); },
+    /* which terminal is speaking: the Office carries the recordings, the Group does not */
+    real:function(on){ realOn = !!on; },
+    /* a new scene begins: the boot's dry tail is over, and the room tone is re-asserted.
+       The context is never created here — that only ever happens on a real gesture. */
+    scene:function(){ api._done = false; if(ctx) startAmbient(); },
     key:function(){
+      if(!realOn){ clack(0.018 + Math.random() * 0.010, 185 + Math.random() * 95, 6); return; }
       hit("key", REAL_KEY * (0.78 + Math.random() * 0.44), 0.92 + Math.random() * 0.18);
       typeTick();
     },
@@ -2365,7 +2396,7 @@ var Sound = (function(){
     sigh:function(){ whir(0.95, 430, 150, 0.02, 1.6); voice("sine", 132, 0.8, 0.010, 92); },
     press:function(){
       api._pressed = true;
-      hit("mouse", REAL_MOUSE * (0.78 + Math.random() * 0.44), 0.92 + Math.random() * 0.18);
+      if(realOn) hit("mouse", REAL_MOUSE * (0.78 + Math.random() * 0.44), 0.92 + Math.random() * 0.18);
       clack(0.05, 205 + Math.random() * 70, 6);
     },
     room:room,
@@ -2385,6 +2416,19 @@ var Sound = (function(){
   return api;
 })();
 
+/* The room tone is brought up at the earliest gesture the browser will allow, so the
+   terminal is never silent once the visitor has touched it. Everything here is
+   idempotent, so the gate handlers calling Sound.start() again costs nothing. */
+(function(){
+  function once(){
+    Sound.start();
+    document.removeEventListener("pointerdown", once, true);
+    document.removeEventListener("keydown", once, true);
+  }
+  document.addEventListener("pointerdown", once, true);
+  document.addEventListener("keydown", once, true);
+})();
+
 /* Every real press in the interface — buttons, tabs, links, the contents list —
    gets the recorded mouse click under the terminal's own press effect. Anything
    that already plays a press sound is left alone, so nothing doubles up. */
@@ -2398,6 +2442,7 @@ document.addEventListener("click", function(ev){
 
 /* ------------------------------------------------------------------ boot */
 function boot(){
+  Sound.real(false); Sound.scene();   /* the Group's own terminal keeps its original sounds */
   var el = document.getElementById("boot");
   if(!el){ reveal(); return; }
   /* the terminal can be re-entered after returning from the file index */
@@ -2461,6 +2506,7 @@ function boot(){
          + '</div>';
   }
   function stageSelect(){
+    Sound.real(false); Sound.scene();   /* the Group's file index: its own terminal, its own sounds */
     stepEl.textContent = "FILE INDEX"; prog.style.width = "100%"; hint.textContent = "select a record to open";
     /* while the index is open the boot can no longer be skipped with a stray click or keypress */
     el.removeEventListener("click", skip); window.removeEventListener("keydown", skip);
@@ -2825,6 +2871,7 @@ function officeBoot(){
 
   /* ---- 1. the gate ---- */
   function showGate(){
+    Sound.real(true); Sound.scene();    /* the Office terminal carries the recordings */
     archBack(false);
     stepEl.textContent = "STANDBY"; prog.style.width = "0%"; hint.textContent = "";
     setBody('<div class="off-gate">'
@@ -2885,6 +2932,7 @@ function officeBoot(){
   ];
   var seqI = 0;
   function startBoot(){
+    Sound.real(true); Sound.scene();
     archBack(false);
     seqI = 0;
     setBody('<div class="off-log" id="offLog"></div>');
