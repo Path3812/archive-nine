@@ -2179,7 +2179,7 @@ var TYPE_MS = 50, TYPE_MS_FAST = 40, KEY_GAP = 110, KEY_GAP_OFF = 165;
 
 /* -------------------------------------------------------------- sound */
 var Sound = (function(){
-  var ctx = null, ambient = null, bus = null;
+  var ctx = null, ambient = null, ambient2 = null, bus = null;
   function ensure(){
     if(!ctx){ var AC = window.AudioContext || window.webkitAudioContext; if(!AC) return null; ctx = new AC(); }
     if(ctx.state === "suspended") ctx.resume();
@@ -2378,27 +2378,45 @@ var Sound = (function(){
     g.gain.setValueAtTime(v, t + Math.max(0.02, dur - 0.03)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.connect(lp); lp.connect(g); g.connect(bus); o.start(t); o.stop(t + dur + 0.02);
   }
-  function startAmbient(){
-    if(!ensure() || ambient) return;
-    /* one second of low rumble, built as a SEAMLESS loop: the walk is generated
-       long, then its head is crossfaded over the tail, so the loop point carries
-       no step edge. Without that the seam is a step discontinuity through the
-       620 Hz lowpass - heard as a thump once a second, forever. */
-    var L = Math.round(ctx.sampleRate), X = Math.round(ctx.sampleRate * 0.15), i = 0;
+  /* One bed of low machine rumble, built so that it cannot be heard looping. Two
+     things are needed and both are easy to get wrong:
+
+       - the loop seam must carry no step edge, or the walk jumps once per loop and
+         the click rings through the 620 Hz lowpass as a thump. The walk is therefore
+         generated long and its head folded over its tail.
+       - that fold must be EQUAL-POWER, not linear. The two ends are uncorrelated
+         noise, so a linear fade sums them to a level dip of up to 3 dB halfway
+         through the fold - heard as a pulse once every loop. Gains of sqrt(t) and
+         sqrt(1-t) keep the summed power constant instead.
+
+     And the bed is seconds long, not one second, so its texture cannot recur
+     inside a sitting. */
+  function bed(seconds, xsec){
+    var L = Math.round(ctx.sampleRate * seconds), X = Math.round(ctx.sampleRate * xsec), i;
     var buf = ctx.createBuffer(1, L, ctx.sampleRate), d = buf.getChannelData(0), last = 0;
     var raw = new Float32Array(L + X);
     for(i = 0; i < L + X; i++){ var w = Math.random() * 2 - 1; last = (last + 0.02 * w) / 1.02; raw[i] = last * 3.2; }
     for(i = 0; i < L; i++) d[i] = raw[i];
-    for(i = 0; i < X; i++){ var t = i / X; d[i] = raw[i] * t + raw[L + i] * (1 - t); }
-    ambient = ctx.createBufferSource(); ambient.buffer = buf; ambient.loop = true;
+    for(i = 0; i < X; i++){ var t = i / X; d[i] = raw[i] * Math.sqrt(t) + raw[L + i] * Math.sqrt(1 - t); }
+    return buf;
+  }
+  function startAmbient(){
+    if(!ensure() || ambient) return;
+    /* Two beds of deliberately incommensurate length: 13.0 s against 8.7 s share no
+       short common period, so the pair drifts instead of repeating. They sum into one
+       lowpass, which doubles the power, so the gain is scaled by 1/sqrt(2) to keep the
+       rumble at exactly the level it has always had. */
     var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 620;
-    var g = ctx.createGain(); g.gain.value = 0.016;
+    var g = ctx.createGain(); g.gain.value = 0.016 / Math.SQRT2;
+    ambient = ctx.createBufferSource(); ambient.buffer = bed(13.0, 0.9); ambient.loop = true;
+    ambient2 = ctx.createBufferSource(); ambient2.buffer = bed(8.7, 0.9); ambient2.loop = true;
+    ambient.connect(lp); ambient2.connect(lp); lp.connect(g); g.connect(bus);
     var hum = ctx.createOscillator(); hum.type = "sine"; hum.frequency.value = 50;
     var hg = ctx.createGain(); hg.gain.value = 0.005;
-    ambient.connect(lp); lp.connect(g); g.connect(bus); hum.connect(hg); hg.connect(bus);
-    ambient.start(); hum.start();
-    /* if the bed ever ends for any reason, bring it straight back */
-    ambient.onended = function(){ ambient = null; hum = null; if(!document.hidden) startAmbient(); };
+    hum.connect(hg); hg.connect(bus);
+    ambient.start(); ambient2.start(); hum.start();
+    /* if the bed ever ends for any reason, bring the whole thing straight back */
+    ambient.onended = function(){ ambient = null; ambient2 = null; hum = null; if(!document.hidden) startAmbient(); };
   }
   /* The terminal's room tone must never lapse. A context can be suspended behind the
      page's back — a phone locking, a tab switched away — and that would leave the
