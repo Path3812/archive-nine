@@ -12,14 +12,14 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Office of the Fourth · Restricted Archive">
 <meta property="og:description" content="Restricted access terminal. Identity verification required.">
-<meta property="og:image" content="https://path3812.github.io/office-of-the-fourth/og.png?v=2">
+<meta property="og:image" content="https://path3812.github.io/office-of-the-fourth/og.png?v=3">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The Fourth Eye, the emblem of the Office of the Fourth">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Office of the Fourth · Restricted Archive">
 <meta name="twitter:description" content="Restricted access terminal. Identity verification required.">
-<meta name="twitter:image" content="https://path3812.github.io/office-of-the-fourth/og.png?v=2">
+<meta name="twitter:image" content="https://path3812.github.io/office-of-the-fourth/og.png?v=3">
 <script>document.documentElement.className += ' js';</script>
 <style>
 /* =========================================================================
@@ -2150,6 +2150,11 @@ var Sound = (function(){
   var ASSETS = null, RB = {}, PB = {}, roomSrc = null, roomG = null, roomStop = null, roomWant = false;
   var SIGH_RMS = 0.036143654680232055, VOC_MASTER = 1.8;
   var REAL_KEY = 0.050, REAL_MOUSE = 0.090;
+  /* The typing effect is the audition's TICK, not the terminal clack. The audition
+     ran the tick unfiltered at 0.075 against a real key of 0.090; the filter bus
+     lifts small signals about 1.6x, so 0.0257 lands on that same tick-to-key
+     balance here. One number to move if the writing sound wants changing. */
+  var TICK = 0.0257;
   function assets(){
     if(ASSETS) return ASSETS;
     var el = document.getElementById("snd-assets");
@@ -2285,6 +2290,22 @@ var Sound = (function(){
     var g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.042);
     o.connect(bp); bp.connect(g); g.connect(bus); o.start(t); o.stop(t + 0.06); burst(v * 0.55, f * 9, 1.1, 0.012);
   }
+  /* the terminal's writing sound: a short burst of bandpassed noise — the tick the
+     audition shipped, with its own 2 ms attack rather than clack's instant onset */
+  function typeTick(){
+    if(!ensure()) return; var t = ctx.currentTime, span = 0.05;
+    var len = Math.max(1, Math.floor(ctx.sampleRate * span));
+    var buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    for(var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    var s = ctx.createBufferSource(); s.buffer = buf;
+    var f = ctx.createBiquadFilter(); f.type = "bandpass"; f.Q.value = 1.5;
+    f.frequency.value = 1700 + Math.random() * 1700;
+    var g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(TICK, t + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+    s.connect(f); f.connect(g); g.connect(bus);
+    s.start(t); s.stop(t + 0.07);
+  }
   function thunk(vol, f){
     if(!ensure()) return; var t = ctx.currentTime, v = vol || 0.09, fr = f || 120;
     var o = ctx.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(fr, t); o.frequency.exponentialRampToValueAtTime(fr * 0.55, t + 0.17);
@@ -2315,7 +2336,7 @@ var Sound = (function(){
     start:function(){ ensure(); startAmbient(); preload(); },
     key:function(){
       hit("key", REAL_KEY * (0.78 + Math.random() * 0.44), 0.92 + Math.random() * 0.18);
-      clack(0.018 + Math.random() * 0.010, 185 + Math.random() * 95, 6);
+      typeTick();
     },
     tick:function(){ clack(0.042, 150 + Math.random() * 45, 5); },
     beep:function(f){ var x = f || 880; voice("square", x, 0.055, 0.026, null, 7); voice("square", x, 0.055, 0.018, null, -10); },
