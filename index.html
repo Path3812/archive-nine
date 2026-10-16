@@ -727,11 +727,13 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
 /* the Fourth Eye: the three dots slowly orbit the blue core */
 .o5-dots{ transform-box:view-box; transform-origin:24px 24px; animation:o5spin 11s linear infinite; }
 @keyframes o5spin{ to{ transform:rotate(360deg); } }
-/* the middle circle breathes: its glow swells outward in the core's own colour.
-   opacity + transform only, so it rides the compositor - no per-frame filter work. */
+/* the middle circle breathes: the disc itself swells and its glow swells with it,
+   in the core's own colour. opacity + transform only, so it rides the compositor. */
 .o5-core-halo{ transform-box:view-box; transform-origin:24px 24px; animation:o5pulse 2.7s ease-in-out infinite; }
 @keyframes o5pulse{ 0%,100%{ opacity:.7; transform:scale(1); } 50%{ opacity:1; transform:scale(1.3); } }
-@media (prefers-reduced-motion: reduce){ .o5-dots{ animation:none; } .o5-core-halo{ animation:none; opacity:.85; } }
+.o5-core{ transform-box:view-box; transform-origin:24px 24px; animation:o5core 2.7s ease-in-out infinite; }
+@keyframes o5core{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.24); } }
+@media (prefers-reduced-motion: reduce){ .o5-dots{ animation:none; } .o5-core-halo{ animation:none; opacity:.85; } .o5-core{ animation:none; } }
 /* the line under the text glows: one bright band slides across and wraps seamlessly */
 .off-gate .og-line{ position:absolute; left:-18px; right:-18px; bottom:0; height:2px; overflow:hidden;
   background:rgba(142,194,222,.20);
@@ -933,12 +935,16 @@ html.lite .off-gate .og-shield{ animation:none; }
          colour (#8ec2de), concentric with it and just a little larger, so it reads
          as the circle itself breathing - not a separate halo. Drawn beneath the
          eye rings, so the solid core hides its opaque centre. -->
-    <circle class="o5-core-halo" cx="24" cy="24" r="10" fill="url(#o5CoreGlow)"/>
+    <circle class="o5-core-halo" cx="24" cy="24" r="9" fill="url(#o5CoreGlow)"/>
     <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="6" opacity=".12"/>
     <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="2.4"/>
     <circle cx="24" cy="24" r="8.6" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".55"/>
-    <circle cx="24" cy="24" r="6.4" fill="currentColor"/>
-    <circle cx="24" cy="24" r="4.2" fill="none" stroke="#04070a" stroke-width="1.5" opacity=".8"/>
+    <!-- the middle circle itself: the disc and its carved ring scale together, so the
+         circle breathes rather than a halo around it -->
+    <g class="o5-core">
+      <circle cx="24" cy="24" r="6.4" fill="currentColor"/>
+      <circle cx="24" cy="24" r="4.2" fill="none" stroke="#04070a" stroke-width="1.5" opacity=".8"/>
+    </g>
     <g class="o5-dots" fill="#eef5f9">
       <circle cx="24" cy="11.8" r="6.8" fill="url(#o5DotGlow)"/>
       <circle cx="13.44" cy="30.1" r="6.8" fill="url(#o5DotGlow)"/>
