@@ -727,11 +727,11 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
 /* the Fourth Eye: the three dots slowly orbit the blue core */
 .o5-dots{ transform-box:view-box; transform-origin:24px 24px; animation:o5spin 11s linear infinite; }
 @keyframes o5spin{ to{ transform:rotate(360deg); } }
-/* the blue core breathes: its halo swells out and fades back on a slow loop.
+/* the middle circle breathes: its glow swells outward in the core's own colour.
    opacity + transform only, so it rides the compositor - no per-frame filter work. */
 .o5-core-halo{ transform-box:view-box; transform-origin:24px 24px; animation:o5pulse 2.7s ease-in-out infinite; }
-@keyframes o5pulse{ 0%,100%{ opacity:.34; transform:scale(.8); } 50%{ opacity:.95; transform:scale(1.12); } }
-@media (prefers-reduced-motion: reduce){ .o5-dots{ animation:none; } .o5-core-halo{ animation:none; opacity:.62; } }
+@keyframes o5pulse{ 0%,100%{ opacity:.7; transform:scale(1); } 50%{ opacity:1; transform:scale(1.3); } }
+@media (prefers-reduced-motion: reduce){ .o5-dots{ animation:none; } .o5-core-halo{ animation:none; opacity:.85; } }
 /* the line under the text glows: one bright band slides across and wraps seamlessly */
 .off-gate .og-line{ position:absolute; left:-18px; right:-18px; bottom:0; height:2px; overflow:hidden;
   background:rgba(142,194,222,.20);
@@ -929,10 +929,14 @@ html.lite .off-gate .og-shield{ animation:none; }
   <!-- the Eye, unchanged, grown into the space the circle and arrows left.
        Nested <svg> so .o5-dots keeps its own 24,24 orbit centre. -->
   <svg x="9.71" y="9.71" width="52.57" height="52.57" viewBox="0 0 48 48" overflow="visible">
+    <!-- the middle circle's own light: a tight radial glow in exactly the core's
+         colour (#8ec2de), concentric with it and just a little larger, so it reads
+         as the circle itself breathing - not a separate halo. Drawn beneath the
+         eye rings, so the solid core hides its opaque centre. -->
+    <circle class="o5-core-halo" cx="24" cy="24" r="10" fill="url(#o5CoreGlow)"/>
     <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="6" opacity=".12"/>
     <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="2.4"/>
     <circle cx="24" cy="24" r="8.6" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".55"/>
-    <circle class="o5-core-halo" cx="24" cy="24" r="15" fill="url(#o5CoreGlow)"/>
     <circle cx="24" cy="24" r="6.4" fill="currentColor"/>
     <circle cx="24" cy="24" r="4.2" fill="none" stroke="#04070a" stroke-width="1.5" opacity=".8"/>
     <g class="o5-dots" fill="#eef5f9">
@@ -954,7 +958,9 @@ html.lite .off-gate .og-shield{ animation:none; }
 </radialGradient>
 <radialGradient id="o5CoreGlow">
   <stop offset="0" stop-color="#8ec2de" stop-opacity="1"/>
-  <stop offset=".38" stop-color="#8ec2de" stop-opacity=".5"/>
+  <stop offset=".62" stop-color="#8ec2de" stop-opacity="1"/>
+  <stop offset=".78" stop-color="#8ec2de" stop-opacity=".55"/>
+  <stop offset=".92" stop-color="#8ec2de" stop-opacity=".2"/>
   <stop offset="1" stop-color="#8ec2de" stop-opacity="0"/>
 </radialGradient>
 </defs></svg>
