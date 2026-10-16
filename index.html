@@ -2165,6 +2165,14 @@ var Notes = (function(){
   return { init:init, close:close };
 })();
 
+/* How fast the boot prints, and how tightly the recorded keystrokes may follow.
+   The reveal used to run at 8-13 ms per character and fire a keypress every third
+   one - a sound every ~25 ms, far shorter than the ~109 ms recording, so a whole
+   line smeared into one buzz. TYPE_MS is the per-character reveal; KEY_GAP is the
+   smallest real time between keystroke sounds, so the writing stays legible whatever
+   the reveal speed (and on the lightened tier, where delays are shortened). */
+var TYPE_MS = 50, TYPE_MS_FAST = 40, KEY_GAP = 110;
+
 /* -------------------------------------------------------------- sound */
 var Sound = (function(){
   var ctx = null, ambient = null, bus = null;
@@ -2638,8 +2646,8 @@ function boot(){
     {p:"line", s:"A.N. ACCESS TERMINAL  \u00b7  build 0.9.14", c:"banner"},
     {p:"line", s:"(c) ARCHIVE NINE ARCHIVAL SYSTEMS \u2014 internal circulation", c:"dim"},
     {p:"wait", dur:160},
-    {p:"type", s:"POST  cpu   archive-1 .......... ok", c:"dim", sp:9},
-    {p:"type", s:"POST  mem   262144 kb .......... ok", c:"dim", sp:9},
+    {p:"type", s:"POST  cpu   archive-1 .......... ok", c:"dim", sp:TYPE_MS_FAST},
+    {p:"type", s:"POST  mem   262144 kb .......... ok", c:"dim", sp:TYPE_MS_FAST},
     {p:"line", s:"POST  keystore / token bus ..... ok", c:"dim"},
     {p:"line", s:"POST  tamper seal .............. intact", c:"ok"},
     {p:"wait", dur:150},
@@ -2660,7 +2668,7 @@ function boot(){
     {p:"wait", dur:360},
     {p:"step", s:"AUTHORIZE"},
     {p:"prog", v:42},
-    {p:"type", s:"evaluating access policy .......", c:"dim", sp:9},
+    {p:"type", s:"evaluating access policy .......", c:"dim", sp:TYPE_MS_FAST},
     {p:"line", s:"      request      \u2014  awaiting selection", c:"dim"},
     {p:"line", s:"      clearance    none on record", c:"warn"},
     {p:"line", s:"      policy       DENY \u2192 fallback OVERRIDE", c:"warn"},
@@ -2687,7 +2695,7 @@ function boot(){
     {p:"line", s:"      mnestic baseline \u00b7 amnestic exposure 0", c:"ok"},
     {p:"step", s:"AUDIT"},
     {p:"prog", v:95},
-    {p:"type", s:"writing audit record ...........", c:"dim", sp:9},
+    {p:"type", s:"writing audit record ...........", c:"dim", sp:TYPE_MS_FAST},
     {p:"line", s:"      log          local, append-only", c:"dim"},
     {p:"line", s:"      duress code  not asserted", c:"dim"},
     {p:"line", s:"      witness      none \u00b7 single-operator", c:"warn"},
@@ -2718,10 +2726,11 @@ function boot(){
   }
   function typeLine(st, cb){
     var d = document.createElement("div"); d.className = "boot-line" + (st.c ? " " + st.c : ""); out.appendChild(d); trim();
-    var s = st.s, j = 0;
+    var s = st.s, j = 0, lastKey = 0;
     if(rm){ d.textContent = s; return setTimeout(cb, 16); }
-    (function tick(){ if(done) return; j++; d.innerHTML = esc(s.slice(0, j)) + '<span class="caret"></span>'; if(j % 3 === 0) Sound.key();
-      if(j >= s.length){ d.textContent = s; return setTimeout(cb, dur(90)); } setTimeout(tick, dur(st.sp || 13)); })();
+    (function tick(){ if(done) return; j++; d.innerHTML = esc(s.slice(0, j)) + '<span class="caret"></span>';
+      var now = Date.now(); if(now - lastKey >= KEY_GAP){ lastKey = now; Sound.key(); }
+      if(j >= s.length){ d.textContent = s; return setTimeout(cb, dur(90)); } setTimeout(tick, dur(st.sp || TYPE_MS)); })();
   }
   function barLine(st, cb){
     var d = document.createElement("div"); d.className = "boot-line"; out.appendChild(d); trim();
@@ -2945,8 +2954,8 @@ function officeBoot(){
     {p:"line", s:"OFFICE OF THE FOURTH  \u00b7  secure terminal 5.2.1", c:"banner"},
     {p:"line", s:"classified channel \u00b7 weak ciphers refused", c:"dim"},
     {p:"wait", dur:180},
-    {p:"type", s:"POST  secure enclave ............ ok", c:"dim", sp:8},
-    {p:"type", s:"POST  tamper monitor ............ ok", c:"dim", sp:8},
+    {p:"type", s:"POST  secure enclave ............ ok", c:"dim", sp:TYPE_MS_FAST},
+    {p:"type", s:"POST  tamper monitor ............ ok", c:"dim", sp:TYPE_MS_FAST},
     {p:"line", s:"POST  rf shield ................. closed", c:"ok"},
     {p:"sound", s:"breathe"},
     {p:"spin", label:"reading interface token", tail:"slot 4", dur:820, done:"[ ok ] token accepted"},
@@ -2963,7 +2972,7 @@ function officeBoot(){
     {p:"sound", s:"scan"},
     {p:"step", s:"BRIEFING"},
     {p:"prog", v:60},
-    {p:"type", s:"mounting restricted archive .....", c:"dim", sp:8},
+    {p:"type", s:"mounting restricted archive .....", c:"dim", sp:TYPE_MS_FAST},
     {p:"line", s:"      holdings     4 records \u00b7 2 sealed", c:"dim"},
     {p:"sound", s:"secure"},
     {p:"wait", dur:240},
@@ -2995,10 +3004,11 @@ function officeBoot(){
     }
   }
   function typeLine(st, cb){
-    var d = addLine("", st.c); push(d); var s = st.s, j = 0;
+    var d = addLine("", st.c); push(d); var s = st.s, j = 0, lastKey = 0;
     if(rm){ d.textContent = s; return hold(16, cb); }
-    (function tick(){ j++; d.innerHTML = esc(s.slice(0, j)) + '<span class="caret"></span>'; if(j % 3 === 0) Sound.key();
-      if(j >= s.length){ d.textContent = s; return setTimeout(cb, 80); } setTimeout(tick, st.sp || 12); })();
+    (function tick(){ j++; d.innerHTML = esc(s.slice(0, j)) + '<span class="caret"></span>';
+      var now = Date.now(); if(now - lastKey >= KEY_GAP){ lastKey = now; Sound.key(); }
+      if(j >= s.length){ d.textContent = s; return setTimeout(cb, 80); } setTimeout(tick, st.sp || TYPE_MS); })();
   }
   function spinLine(st, cb){
     var d = addLine(""); push(d); var frames = ["|","/","-","\\"], f = 0, t0 = Date.now(), span = rm ? 0 : st.dur;
