@@ -720,7 +720,8 @@ html.lite .folder-page::before{ mix-blend-mode:normal; opacity:.06; }
 .off-gate .og-b::before{ content:"\003E\00a0"; color:var(--o-acc-2); }
 .off-gate .og-b::after{ content:"\00a0\003C"; color:var(--o-acc-2); }
 .off-gate .og-b:hover{ color:#bfe0f2; text-shadow:0 0 18px rgba(142,194,222,.7); }
-.off-gate .og-b:focus-visible{ outline:1px solid var(--o-acc-2); outline-offset:7px; color:#bfe0f2; }
+.off-gate .og-b:focus{ outline:none; }
+.off-gate .og-b:focus-visible{ color:#bfe0f2; text-shadow:0 0 18px rgba(142,194,222,.7); }
 .off-gate .og-s.og-red{ color:#f23325; text-shadow:0 0 12px rgba(238,40,30,.92), 0 0 28px rgba(200,22,16,.52);
   animation:ogredpulse 3.2s var(--ease) infinite; }
 @keyframes ogredpulse{ 50%{ text-shadow:0 0 18px rgba(255,60,46,.98), 0 0 42px rgba(214,28,20,.62); } }
@@ -1094,7 +1095,7 @@ html.lite .off-gate .og-shield{ animation:none; }
     <div class="boot-foot">
       <span class="boot-prog"><i id="bootProg"></i></span>
       <span id="bootMeta">SESSION ----</span>
-      <span class="boot-hint" id="bootHint">click or press any key to skip</span>
+      <span class="boot-hint" id="bootHint"></span>
     </div>
   </div>
 </div>
@@ -2499,7 +2500,7 @@ function boot(){
   el.style.display = ""; el.classList.remove("gone");
   var out = document.getElementById("bootOut"), side = document.getElementById("bootSide"), stepEl = document.getElementById("bootStep");
   var prog = document.getElementById("bootProg"), meta = document.getElementById("bootMeta"), hint = document.getElementById("bootHint"), clock = document.getElementById("bootClock");
-  var rm = reducedMotion(), done = false, i = 0, startedAt = 0;
+  var rm = reducedMotion(), done = false, i = 0;
   /* on a low-end machine the whole boot is played faster so reading starts sooner */
   function dur(ms){ return LITE ? Math.max(5, Math.round(ms * 0.55)) : ms; }
   function pad2(n){ return (n < 10 ? "0" : "") + n; }
@@ -2515,16 +2516,9 @@ function boot(){
 
   function finish(){
     if(done) return; done = true; Sound._done = true;
-    clearInterval(clk); clearInterval(sideT); window.removeEventListener("keydown", skip);
+    clearInterval(clk); clearInterval(sideT);
     if(rm){ if(el.parentNode) el.remove(); reveal(); return; }
     stageWelcome();
-  }
-  function skip(){
-    if(done || !startedAt || Date.now() - startedAt < 420) return;
-    done = true; Sound._done = true; clearInterval(clk); clearInterval(sideT);
-    window.removeEventListener("keydown", skip); el.removeEventListener("click", skip);
-    /* skipping fast-forwards the boot — it still lands on the file index, never past it */
-    stageSelect();
   }
   function stageWelcome(){
     stepEl.textContent = "READY"; hint.textContent = ""; prog.style.width = "100%";
@@ -2558,8 +2552,6 @@ function boot(){
   function stageSelect(){
     Sound.real(false); Sound.scene();   /* the Group's file index: its own terminal, its own sounds */
     stepEl.textContent = "FILE INDEX"; prog.style.width = "100%"; hint.textContent = "select a record to open";
-    /* while the index is open the boot can no longer be skipped with a stray click or keypress */
-    el.removeEventListener("click", skip); window.removeEventListener("keydown", skip);
     out.classList.add("center");
     out.innerHTML = seatMenuHTML();
     Sound.relay();
@@ -2571,7 +2563,7 @@ function boot(){
       ev.preventDefault();
       var b = out.querySelector("[data-pick]"); if(b) b.click();
     }
-    /* the index becomes live a moment after it is drawn: the press that skipped the boot
+    /* the index becomes live a moment after it is drawn: the press that opened the terminal
        (its click, or its key-up landing on the freshly focused button) must not also pick a record */
     setTimeout(function(){
       if(picked) return;
@@ -2773,10 +2765,7 @@ function boot(){
       if(gateBtn) gateBtn.removeEventListener("click", go);
       window.removeEventListener("keydown", go);
       Sound.start(); Sound.relay(); Sound.beep(880);
-      startedAt = Date.now(); out.innerHTML = ""; hint.textContent = "click or press any key to skip";
-      /* attach the skip handlers only after this event has finished dispatching, so the same
-         press that opened the terminal does not also skip the boot sequence */
-      setTimeout(function(){ el.addEventListener("click", skip); window.addEventListener("keydown", skip); }, 0);
+      out.innerHTML = ""; hint.textContent = "";
       next();
     }
     if(gateBtn){
