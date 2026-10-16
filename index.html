@@ -2171,8 +2171,11 @@ var Notes = (function(){
    one - a sound every ~25 ms, far shorter than the ~109 ms recording, so a whole
    line smeared into one buzz. TYPE_MS is the per-character reveal; KEY_GAP is the
    smallest real time between keystroke sounds, so the writing stays legible whatever
-   the reveal speed (and on the lightened tier, where delays are shortened). */
-var TYPE_MS = 50, TYPE_MS_FAST = 40, KEY_GAP = 110;
+   the reveal speed (and on the lightened tier, where delays are shortened).
+   KEY_GAP_OFF is the Office's own, sparser cadence: the Office carries the recorded
+   keypress under the tick, and keys two-and-a-bit times a second read as a machine;
+   the Group's terminal keeps KEY_GAP untouched. */
+var TYPE_MS = 50, TYPE_MS_FAST = 40, KEY_GAP = 110, KEY_GAP_OFF = 165;
 
 /* -------------------------------------------------------------- sound */
 var Sound = (function(){
@@ -2201,7 +2204,7 @@ var Sound = (function(){
      ------------------------------------------------------------------------ */
   var ASSETS = null, RB = {}, PB = {}, roomSrc = null, roomG = null, roomStop = null, roomWant = false;
   var SIGH_RMS = 0.036143654680232055, VOC_MASTER = 1.8;
-  var REAL_KEY = 0.050, REAL_MOUSE = 0.090;
+  var REAL_KEY = 0.030, REAL_MOUSE = 0.090;
   /* The typing effect is the audition's TICK, not the terminal clack. The audition
      ran the tick unfiltered at 0.075 against a real key of 0.090; the filter bus
      lifts small signals about 1.6x, so 0.0257 lands on that same tick-to-key
@@ -2377,8 +2380,16 @@ var Sound = (function(){
   }
   function startAmbient(){
     if(!ensure() || ambient) return;
-    var buf = ctx.createBuffer(1, ctx.sampleRate * 1, ctx.sampleRate), d = buf.getChannelData(0), last = 0;
-    for(var i = 0; i < d.length; i++){ var w = Math.random() * 2 - 1; last = (last + 0.02 * w) / 1.02; d[i] = last * 3.2; }
+    /* one second of low rumble, built as a SEAMLESS loop: the walk is generated
+       long, then its head is crossfaded over the tail, so the loop point carries
+       no step edge. Without that the seam is a step discontinuity through the
+       620 Hz lowpass - heard as a thump once a second, forever. */
+    var L = Math.round(ctx.sampleRate), X = Math.round(ctx.sampleRate * 0.15), i = 0;
+    var buf = ctx.createBuffer(1, L, ctx.sampleRate), d = buf.getChannelData(0), last = 0;
+    var raw = new Float32Array(L + X);
+    for(i = 0; i < L + X; i++){ var w = Math.random() * 2 - 1; last = (last + 0.02 * w) / 1.02; raw[i] = last * 3.2; }
+    for(i = 0; i < L; i++) d[i] = raw[i];
+    for(i = 0; i < X; i++){ var t = i / X; d[i] = raw[i] * t + raw[L + i] * (1 - t); }
     ambient = ctx.createBufferSource(); ambient.buffer = buf; ambient.loop = true;
     var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 620;
     var g = ctx.createGain(); g.gain.value = 0.016;
@@ -2527,7 +2538,7 @@ function boot(){
     out.innerHTML = '<div class="boot-welcome"><div class="w-big">WELCOME</div><div class="w-op"><span>OPERATOR</span><span class="w-redact"></span></div><div class="w-sub">identity not on record \u00b7 session logged</div></div>';
     Sound.ok();
     setTimeout(function(){ var w = out.querySelector(".boot-welcome"); if(w) w.classList.add("redact-in"); Sound.stamp(); }, 1050);
-    setTimeout(stageSelect, 3400);
+    setTimeout(stageSelect, 4800);
   }
   /* the file index: the terminal holds one readable record; every other seat is sealed */
   function seatMenuHTML(){
@@ -2553,6 +2564,7 @@ function boot(){
     Sound.real(false); Sound.scene();   /* the Group's file index: its own terminal, its own sounds */
     stepEl.textContent = "FILE INDEX"; prog.style.width = "100%"; hint.textContent = "select a record to open";
     out.classList.add("center");
+    var bb = document.querySelector(".boot-body"); if(bb) bb.classList.remove("solo");
     out.innerHTML = seatMenuHTML();
     Sound.relay();
     var menu = out.querySelector(".boot-pick");
@@ -2606,7 +2618,7 @@ function boot(){
       '<div class="sh">Session</div>' +
       '<div class="row"><span>ID</span><b>' + SID + '</b></div>' +
       '<div class="row"><span>Operator</span><b><span class="bar">██████ ██████</span></b></div>' +
-      '<div class="row"><span>Clearance</span><b>NONE</b></div>' +
+      '<div class="row"><span>Clearance</span><b id="sideClear">NONE</b></div>' +
       '<div class="row"><span>Token</span><b>' + TOK + '</b></div>' +
       '<div class="sh" style="margin-top:14px">Machine</div>' +
       '<div class="row"><span>Load</span><b data-live="load" aria-live="polite">0.00</b></div>' +
@@ -2698,21 +2710,27 @@ function boot(){
     {p:"wait", dur:220},
     {p:"line", s:"", c:""},
     {p:"line", s:"ARCHIVE NINE  \u00b7  SESSION ACCESS GRANTED", c:"banner"},
-    {p:"line", s:"session established \u00b7 file index available", c:"ok"}
+    {p:"line", s:"session established \u00b7 file index available", c:"ok"},
+    {p:"wait", dur:420},
+    {p:"dots", pre:"Loading", post:"Loading complete"},
+    {p:"dots", pre:"Accessing File", post:"File Accessed"},
+    {p:"dots", pre:"Opening File", post:null},
+    {p:"line", s:"Opening", c:"ok"}
   ];
-  function next(){ if(done) return; if(i >= seq.length){ setTimeout(finish, 460); return; } var st = seq[i++]; run(st, next); }
+  function next(){ if(done) return; if(i >= seq.length){ setTimeout(finish, 900); return; } var st = seq[i++]; run(st, next); }
   function run(st, cb){
     switch(st.p){
       case "step": return stepEl.textContent = st.s, Sound.relay(), cb();
       case "prog": return prog.style.width = st.v + "%", cb();
       case "sound": if(Sound[st.s]) Sound[st.s](); return cb();
-      case "grant": { var g = document.getElementById("sideGrant"); if(g) g.textContent = "GRANTED (OVERRIDE)"; return cb(); }
+      case "grant": { var g = document.getElementById("sideGrant"); if(g) g.textContent = "GRANTED (OVERRIDE)"; var sc = document.getElementById("sideClear"); if(sc) sc.textContent = "LEVEL 5 \u00b7 OVERRIDE"; return cb(); }
       case "wait": return setTimeout(cb, rm ? 15 : dur(st.dur));
       case "line": line(st.s, st.c); return setTimeout(cb, rm ? 12 : dur(st.dur || 70));
       case "type": return typeLine(st, cb);
       case "bar": return barLine(st, cb);
       case "spin": return spinLine(st, cb);
       case "hex": return hexLine(st, cb);
+      case "dots": return dotsLine(st, cb);
       default: return cb();
     }
   }
@@ -2747,6 +2765,15 @@ function boot(){
     if(!rm && !done) Sound.data();
     (function frame(){ if(done) return; f++; var s = ""; for(var k = 0; k < groups; k++) s += (k ? " " : "") + hx(4);
       d.textContent = (st.label ? st.label + "  " : "") + s; if(f >= frames) return setTimeout(cb, rm ? 10 : dur(100)); setTimeout(frame, dur(70)); })();
+  }
+  function dotsLine(st, cb){
+    var d = document.createElement("div"); d.className = "boot-line"; out.appendChild(d); trim();
+    if(rm){ d.textContent = st.post ? (st.pre + " ... " + st.post) : st.pre; return setTimeout(cb, 16); }
+    var n = 0, max = 9;
+    (function tick(){ if(done) return; n++;
+      d.textContent = st.pre + new Array(n + 1).join(".");
+      if(n >= max){ if(st.post) d.textContent = st.pre + new Array(max + 1).join(".") + " " + st.post; return setTimeout(cb, dur(460)); }
+      setTimeout(tick, dur(85)); })();
   }
   function armAudio(){ function go(){ Sound.start(); window.removeEventListener("pointerdown", go); window.removeEventListener("keydown", go); } window.addEventListener("pointerdown", go); window.addEventListener("keydown", go); }
 
@@ -2968,7 +2995,12 @@ function officeBoot(){
     {p:"step", s:"GRANT"},
     {p:"prog", v:100},
     {p:"line", s:"OFFICE OF THE 4TH  \u00b7  ACCESS GRANTED", c:"banner"},
-    {p:"line", s:"welcome, O5-4@SCIPNET", c:"acc"}
+    {p:"line", s:"welcome, O5-4@SCIPNET", c:"acc"},
+    {p:"wait", dur:420},
+    {p:"dots", pre:"Loading", post:"Loading complete"},
+    {p:"dots", pre:"Accessing Archive", post:"Archive Accessed"},
+    {p:"dots", pre:"Opening Archive", post:null},
+    {p:"line", s:"Opening", c:"ok"}
   ];
   var seqI = 0;
   function startBoot(){
@@ -2979,7 +3011,7 @@ function officeBoot(){
     hint.textContent = "secure channel \u00b7 do not interrupt";
     next();
   }
-  function next(){ if(seqI >= oseq.length){ hold(520, showWelcome); return; } runStep(oseq[seqI++], next); }
+  function next(){ if(seqI >= oseq.length){ hold(900, showWelcome); return; } runStep(oseq[seqI++], next); }
   function runStep(st, cb){
     switch(st.p){
       case "step": stepEl.textContent = st.s; Sound.relay(); return cb();
@@ -2989,6 +3021,7 @@ function officeBoot(){
       case "line": push(addLine(esc(st.s), st.c)); return hold(70, cb);
       case "type": return typeLine(st, cb);
       case "spin": return spinLine(st, cb);
+      case "dots": return dotsLine(st, cb);
       default: return cb();
     }
   }
@@ -2996,7 +3029,7 @@ function officeBoot(){
     var d = addLine("", st.c); push(d); var s = st.s, j = 0, lastKey = 0;
     if(rm){ d.textContent = s; return hold(16, cb); }
     (function tick(){ j++; d.innerHTML = esc(s.slice(0, j)) + '<span class="caret"></span>';
-      var now = Date.now(); if(now - lastKey >= KEY_GAP){ lastKey = now; Sound.key(); }
+      var now = Date.now(); if(now - lastKey >= KEY_GAP_OFF){ lastKey = now; Sound.key(); }
       if(j >= s.length){ d.textContent = s; return setTimeout(cb, 80); } setTimeout(tick, st.sp || TYPE_MS); })();
   }
   function spinLine(st, cb){
@@ -3004,6 +3037,16 @@ function officeBoot(){
     if(!rm) Sound.drv();
     (function frame(){ d.innerHTML = '<span class="bar">[' + frames[f++ % 4] + ']</span> ' + esc(st.label) + (st.tail ? "  " + esc(st.tail) : "");
       if(Date.now() - t0 >= span){ d.innerHTML = esc(st.done || ("[ ok ] " + st.label)); Sound.relay(); return hold(80, cb); } setTimeout(frame, 78); })();
+  }
+
+  function dotsLine(st, cb){
+    var d = addLine(""); push(d);
+    if(rm){ d.textContent = st.post ? (st.pre + " ... " + st.post) : st.pre; return hold(16, cb); }
+    var n = 0, max = 9;
+    (function tick(){ n++;
+      d.textContent = st.pre + new Array(n + 1).join(".");
+      if(n >= max){ if(st.post) d.textContent = st.pre + new Array(max + 1).join(".") + " " + st.post; return hold(460, cb); }
+      setTimeout(tick, 85); })();
   }
 
   /* ---- 3. welcome, then the closed case folder ---- */
@@ -3016,7 +3059,7 @@ function officeBoot(){
       + '<div class="ow-sub">office of the fourth \u00b7 level 5 \u00b7 session logged</div>'
       + '</div>');
     Sound.secure(); Sound.sigh();
-    hold(2600, function(){ showFolder(false); });
+    hold(3800, function(){ showFolder(false); });
   }
   function archiveHTML(){
     function entry(id, ref, name, st, cls, lamp){
@@ -3148,13 +3191,15 @@ function officeBoot(){
       if(!node) return cb();
       opt = opt || {};
       var step = opt.step || 52, jit = opt.jitter || 0, pauses = opt.pauses || null, every = opt.every || 2;
-      var k = 0;
+      var k = 0, lastKey = 0;
       if(rm){ node.textContent = new Array(n + 1).join("\u2022"); return hold(20, cb); }
       (function tick(){
         var wait = (pauses && pauses[k + 1] !== undefined) ? pauses[k + 1] : step;
         setTimeout(function(){
           k++; node.textContent = new Array(k + 1).join("\u2022");
-          if(k % every === 0) Sound.key();
+          /* the credential fills fast, but the keys keep the Office's own, sparser
+             cadence - one key per character at 16 a second is a machine-gun */
+          if(k % every === 0){ var now = Date.now(); if(now - lastKey >= KEY_GAP_OFF){ lastKey = now; Sound.key(); } }
           if(k >= n) return setTimeout(cb, 240);
           tick();
         }, wait + Math.random() * jit);
@@ -3172,7 +3217,15 @@ function officeBoot(){
       head(2, "security credentials");
       var l1 = cl('<span class="ocl-label">PLEASE ENTER SECURITY CREDENTIALS (LEVEL 5):</span> <span class="ocl-val" data-dots></span>');
       Sound.room(true);                                /* she is sitting in a room; it is audible now */
+      /* randomised: now and then she gets it first time; usually she fumbles once and corrects it */
+      var fumbles = Math.random() < 0.6;
+      function accept(){
+        cl('<span class="ocl-ok">_confirmed</span>');
+        Sound.secure(); Sound.breathe(); Sound.room(false);
+        hold(900, step3);
+      }
       dots(l1.querySelector("[data-dots]"), 17, function(){
+        if(!fumbles){ prog.style.width = "26%"; return accept(); }
         cl('<span class="ocl-bad">_login failed</span>');
         Sound.deny();
         hold(560, function(){
@@ -3183,9 +3236,7 @@ function officeBoot(){
                   var l2 = cl('<span class="ocl-label">PLEASE ENTER SECURITY CREDENTIALS (LEVEL 5):</span> <span class="ocl-val" data-dots></span>');
                   prog.style.width = "26%";
                   dots(l2.querySelector("[data-dots]"), 18, function(){
-                    cl('<span class="ocl-ok">_confirmed</span>');
-                    Sound.secure(); Sound.breathe(); Sound.room(false);
-                    hold(900, step3);
+                    accept();
                   }, { step:150, jitter:60, every:1, pauses:{ 10:520, 11:300 } });   /* she checks the one she doubted */
                 });
               });
