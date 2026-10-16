@@ -12,14 +12,14 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Office of the Fourth · Restricted Archive">
 <meta property="og:description" content="Restricted access terminal. Identity verification required.">
-<meta property="og:image" content="https://path3812.github.io/office-of-the-fourth/og.png?v=3">
+<meta property="og:image" content="https://path3812.github.io/office-of-the-fourth/og.png?v=4">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The Fourth Eye, the emblem of the Office of the Fourth">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Office of the Fourth · Restricted Archive">
 <meta name="twitter:description" content="Restricted access terminal. Identity verification required.">
-<meta name="twitter:image" content="https://path3812.github.io/office-of-the-fourth/og.png?v=3">
+<meta name="twitter:image" content="https://path3812.github.io/office-of-the-fourth/og.png?v=4">
 <script>document.documentElement.className += ' js';</script>
 <style>
 /* =========================================================================
@@ -915,17 +915,27 @@ html.lite .off-gate .og-shield{ animation:none; }
     <line x1="24" y1="13.5" x2="24" y2="16.5"/>
   </g>
 </symbol>
-<symbol id="o5Seal" viewBox="0 0 48 48">
-  <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="6" opacity=".12"/>
-  <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="2.4"/>
-  <circle cx="24" cy="24" r="8.6" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".55"/>
-  <circle cx="24" cy="24" r="6.4" fill="currentColor"/>
-  <circle cx="24" cy="24" r="4.2" fill="none" stroke="#04070a" stroke-width="1.5" opacity=".8"/>
-  <g class="o5-dots" fill="#eef5f9">
-    <circle cx="24" cy="11.8" r="2.7"/>
-    <circle cx="13.44" cy="30.1" r="2.7"/>
-    <circle cx="34.56" cy="30.1" r="2.7"/>
+<symbol id="o5Seal" viewBox="0 0 72 72">
+  <!-- SCP's outer bracket: a stroked circle of r400 with three lobes, taken
+       from the official mark already in this file (#scpMark) -->
+  <g transform="translate(36 36) scale(0.0756) translate(-500 -500)"
+     fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round" opacity=".7">
+    <path d="m 350,50 -31.22187,93.6656 a 400,400 0 0 0 -218.77786,356.33433 400,400 0 0 0 0.79427,21.22453 l -65.505568,73.87145 149.999998,259.80792 96.72742,-19.7936 a 400,400 0 0 0 217.98412,64.88955 400,400 0 0 0 217.9841,-64.88955 l 96.72745,19.7936 150,-259.80792 -65.5061,-73.87145 A 400,400 0 0 0 900,500 400,400 0 0 0 681.1295,143.38814 L 650,50 Z"/>
   </g>
+  <!-- the Eye, unchanged, grown into the space the circle and arrows left.
+       Nested <svg> so .o5-dots keeps its own 24,24 orbit centre. -->
+  <svg x="9.71" y="9.71" width="52.57" height="52.57" viewBox="0 0 48 48" overflow="visible">
+    <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="6" opacity=".12"/>
+    <circle cx="24" cy="24" r="21" fill="none" stroke="currentColor" stroke-width="2.4"/>
+    <circle cx="24" cy="24" r="8.6" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".55"/>
+    <circle cx="24" cy="24" r="6.4" fill="currentColor"/>
+    <circle cx="24" cy="24" r="4.2" fill="none" stroke="#04070a" stroke-width="1.5" opacity=".8"/>
+    <g class="o5-dots" fill="#eef5f9">
+      <circle cx="24" cy="11.8" r="2.7"/>
+      <circle cx="13.44" cy="30.1" r="2.7"/>
+      <circle cx="34.56" cy="30.1" r="2.7"/>
+    </g>
+  </svg>
 </symbol>
 </defs></svg>
 
