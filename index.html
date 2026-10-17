@@ -862,6 +862,10 @@ html.lite .oa-glitch::after{ animation-duration:7.5s; }
   transition:background .2s,color .2s,border-color .2s,box-shadow .2s; }
 .ret:hover,.ret:focus-visible{ background:#0d1a22; color:#bfe0f2; border-color:#8ec2de; outline:none;
   box-shadow:0 0 24px -12px #8ec2de; }
+/* the same control in Archive Nine's amber, for the Group terminal's own file index */
+.ret.an{ color:var(--chrome); background:#171009; border-color:var(--chrome-2); }
+.ret.an:hover,.ret.an:focus-visible{ background:#211608; color:#e8cd8f; border-color:var(--chrome);
+  box-shadow:0 0 24px -12px var(--chrome); }
 /* the archive's return control sits in the Office terminal header, shown only while the archive is up */
 .off-back{ display:none; }
 #office.arch .off-back{ display:inline-block; }
@@ -2577,7 +2581,7 @@ function boot(){
          + '<div class="bp-s">One record is held at this clearance. Sealed entries are not held by this terminal.</div>'
          + '<ul class="seat-list">' + rows + '</ul>'
          + '<div class="bp-f">Select a record to open \u00b7 read-only</div>'
-         + '<div class="bp-back"><button type="button" class="ret" id="idxBack" title="Return to the standby terminal">&#8592; Return to terminal</button></div>'
+         + '<div class="bp-back"><button type="button" class="ret an" id="idxBack" title="Return to the standby terminal">&#8592; Return to terminal</button></div>'
          + '</div>';
   }
   function stageSelect(){
