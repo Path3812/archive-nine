@@ -409,7 +409,8 @@ html.lite .leaf-back::after{ animation:none; }
 .boot-pick .bp-s{ color:var(--steel-dim); font-size:11px; letter-spacing:.05em; line-height:1.4; margin:6px 0 12px; }
 .seat-list{ list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fit,minmax(184px,1fr)); gap:2px 20px; }
 .seat{ min-width:0; line-height:1.15; }
-.seat.sealed{ display:flex; align-items:center; gap:10px; padding:4px 8px; opacity:.62; }
+.seat.sealed{ display:flex; align-items:center; gap:10px; padding:4px 8px; }
+.seat.sealed > span{ opacity:.62; }
 .seat-n{ flex:0 0 42px; color:var(--chrome-2); font-size:11.5px; letter-spacing:.1em; }
 .seat-rd{ height:9px; border-radius:1px; background:#0c0905; border:1px solid rgba(201,163,94,.3); box-shadow:0 0 6px -2px #000 inset; }
 .seat-rd.w1{ flex:0 0 42px; }
@@ -424,6 +425,40 @@ html.lite .leaf-back::after{ animation:none; }
 .seat-btn:hover, .seat-btn:focus-visible{ background:rgba(201,163,94,.18); border-color:var(--chrome); outline:none; box-shadow:0 0 26px -8px var(--chrome); }
 .boot-pick .bp-f{ margin-top:11px; padding-top:8px; border-top:1px solid #28200f; color:var(--steel-dim); font-size:9.5px; letter-spacing:.2em; text-transform:uppercase; }
 .boot-pick .bp-back{ margin-top:14px; }
+/* ===== items 9-13: one chooser system, shared by both terminals =====
+   The two file lists are the same component; each screen only supplies its own accent,
+   so the two authorities stay visually distinct while the behaviour is identical. */
+.boot-pick{ --ch-acc:var(--chrome); --ch-acc2:var(--chrome-2); --ch-line:#28200f; --ch-dim:var(--steel-dim); }
+.off-arch{ --ch-acc:var(--o-acc); --ch-acc2:var(--o-acc-2); --ch-line:var(--o-line); --ch-dim:var(--o-dim); }
+.ch-h{ letter-spacing:.26em; text-transform:uppercase; color:var(--ch-acc); font-size:11.5px; }
+.ch-s{ color:var(--ch-dim); font-size:10.5px; line-height:1.5; margin:7px 0 12px; }
+.ch-f{ margin-top:11px; padding-top:8px; border-top:1px solid var(--ch-line); color:var(--ch-dim);
+  font-size:9.5px; letter-spacing:.2em; text-transform:uppercase; }
+.ch-raisa{ margin-top:9px; font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ch-acc2);
+  opacity:0; transition:opacity .3s ease; }
+.ch-raisa.on{ opacity:1; }
+/* item 10: every entry opens as a full-width black redaction box, then reveals, one at a time */
+.ch-row{ position:relative; }
+.ch-row::after{ content:""; position:absolute; inset:0; background:#04060a;
+  border-left:3px solid var(--ch-acc); box-shadow:inset 0 0 20px -6px var(--ch-acc);
+  transform-origin:left center; transform:scaleX(0); opacity:0; pointer-events:none;
+  transition:transform .34s cubic-bezier(.45,0,.2,1), opacity .3s ease; }
+.ch-row.ch-lid::after{ transform:scaleX(1); opacity:1; }
+/* item 11: a faint, deliberately unsynced glitch on every sealed entry */
+.ch-row[data-kind="sealed"] .ch-bar{ animation:chGlitch 5.1s steps(1) infinite; }
+.ch-row[data-kind="sealed"]:nth-child(2n) .ch-bar{ animation-duration:6.3s; }
+.ch-row[data-kind="sealed"]:nth-child(3n) .ch-bar{ animation-duration:7.1s; }
+@keyframes chGlitch{ 0%,93%,100%{ opacity:1; transform:none; } 95%{ opacity:.4; transform:translateX(1px); } 97%{ opacity:.8; transform:translateX(-1px); } }
+/* item 13: a visible focus ring on every reachable entry, on both screens */
+.boot-pick .ch-row:focus-visible, .off-arch .ch-row:focus-visible{ outline:1px solid var(--ch-acc); outline-offset:2px; }
+/* item 12: sealed rows become real controls, still visually denied */
+button.seat.sealed{ width:100%; font:inherit; text-align:left; background:none; border:1px solid transparent;
+  border-radius:2px; cursor:pointer; }
+button.seat.sealed:hover, button.seat.sealed:focus-visible{ background:rgba(201,163,94,.10);
+  border-color:rgba(201,163,94,.34); outline:none; }
+.ch-row[data-kind="sealed"]:hover::after, .ch-row[data-kind="sealed"]:focus-visible::after{ opacity:.06; transform:scaleX(1); }
+@media (prefers-reduced-motion: reduce){ .ch-row::after{ transition:none; } .ch-row[data-kind="sealed"] .ch-bar{ animation:none; } }
+html.lite .ch-row[data-kind="sealed"] .ch-bar{ animation-duration:9s; }
 .boot-body.solo{ grid-template-columns:minmax(0,1fr); }
 .boot-body.solo .boot-side{ display:none; }
 .boot-log.center{ justify-content:center; }
@@ -817,6 +852,24 @@ html.lite .oa-glitch::after{ animation-duration:7.5s; }
 .oa-lamp{ flex:0 0 auto; width:9px; height:9px; border-radius:50%; background:var(--o-red);
   box-shadow:0 0 12px 2px rgba(191,70,52,.8); animation:offpulse 1.5s var(--ease) infinite; }
 @keyframes offpulse{ 0%,100%{ opacity:1; box-shadow:0 0 12px 2px rgba(191,70,52,.85); } 50%{ opacity:.28; box-shadow:0 0 4px 0 rgba(191,70,52,.4); } }
+/* item 12: the standing RAISA note that resurfaces inside the Office's own record */
+.od-raisa{ margin:0 0 14px; padding:8px 10px; border:1px solid var(--o-red-2); border-left:3px solid var(--o-red);
+  border-radius:2px; background:rgba(191,70,52,.07); color:var(--o-dim); font-size:10.5px; letter-spacing:.04em; }
+.od-raisa b{ color:var(--o-red); letter-spacing:.14em; text-transform:uppercase; }
+/* item 16: the archive screen gets a light workstation skin - a window frame and a taskbar */
+.ow-win{ border:1px solid var(--o-line-2); border-radius:3px; background:#080e14; overflow:hidden; }
+.ow-bar{ display:flex; align-items:center; gap:8px; padding:5px 9px; background:#0b141c; border-bottom:1px solid var(--o-line); }
+.ow-dots{ display:flex; gap:4px; flex:0 0 auto; }
+.ow-dots i{ width:6px; height:6px; border-radius:50%; background:#22323d; }
+.ow-title{ flex:1 1 auto; font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--o-dim); }
+.ow-clock{ flex:0 0 auto; font-size:10px; letter-spacing:.14em; color:var(--o-acc); }
+.ow-pane{ padding:14px 14px 16px; }
+.ow-task{ display:flex; align-items:center; gap:10px; margin-top:12px; padding:6px 10px;
+  border:1px solid var(--o-line); border-radius:2px; background:#0a1218; }
+.ow-chip{ font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:var(--o-dimmer);
+  border:1px solid var(--o-line); border-radius:2px; padding:3px 7px; }
+.ow-chip.on{ color:var(--o-acc); border-color:var(--o-acc-2); }
+.ow-task .ow-clock{ margin-left:auto; }
 /* ---- confirm gate ---- */
 .off-confirm{ margin:auto; width:100%; max-width:560px; text-align:center; }
 .off-confirm .oc-w{ color:var(--o-red); letter-spacing:.3em; text-transform:uppercase; font-size:13px; }
@@ -2084,6 +2137,75 @@ function fileScreen(text, holdMs, tailSound, onDone){
     setTimeout(function(){ if(onDone) onDone(); }, 430);
   }, holdMs || 2200);
 }
+/* ===== items 9-13 + 16: the shared chooser behaviour, used by both file lists =====
+   One reveal cascade, one glitch, one keyboard model and one RAISA log, so the Group's
+   file index and the Office's Restricted Archive finally behave as a single system. */
+var chRevealDone = { an:false, off:false }, chRaisaCount = 0, chClockT = null;
+function chRows(scope, sel){ return [].slice.call(scope.querySelectorAll(sel)); }
+/* item 10: every entry opens as a full-width black redaction box; on the FIRST visit to a
+   given screen the boxes lift one at a time, top to bottom. Afterwards the list is simply there. */
+function chReveal(scope, key, sel){
+  var rows = chRows(scope, sel); if(!rows.length) return;
+  var first = !chRevealDone[key];
+  if(first) chRevealDone[key] = true;
+  rows.forEach(function(r){ r.classList.add("ch-lid"); });
+  if(first && !reducedMotion()){
+    rows.forEach(function(r, i){ setTimeout(function(){ r.classList.remove("ch-lid"); }, 130 + i * 115); });
+  } else {
+    rows.forEach(function(r){ r.classList.remove("ch-lid"); });
+  }
+}
+/* item 13: arrows move between entries, Enter opens, and a roving tabindex keeps exactly
+   one stop in the list. Returns the entry that should hold initial focus. */
+function chKeys(scope, sel, act, startSel){
+  var rows = chRows(scope, sel); if(!rows.length) return null;
+  var start = 0;
+  if(startSel){ for(var k = 0; k < rows.length; k++){ if(rows[k].matches(startSel)){ start = k; break; } } }
+  function setAt(i){ rows.forEach(function(r, j){ r.setAttribute("tabindex", j === i ? "0" : "-1"); }); }
+  setAt(start);
+  function move(i){
+    i = (i + rows.length) % rows.length; setAt(i);
+    try{ rows[i].focus({ preventScroll:true }); }catch(e){ rows[i].focus(); }
+  }
+  scope.addEventListener("keydown", function(ev){
+    var i = rows.indexOf(document.activeElement);
+    if(ev.key === "ArrowDown" || ev.key === "ArrowRight"){ ev.preventDefault(); move(i < 0 ? 0 : i + 1); }
+    else if(ev.key === "ArrowUp" || ev.key === "ArrowLeft"){ ev.preventDefault(); move(i < 0 ? rows.length - 1 : i - 1); }
+    else if(ev.key === "Home"){ ev.preventDefault(); move(0); }
+    else if(ev.key === "End"){ ev.preventDefault(); move(rows.length - 1); }
+    else if(ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar"){
+      var r = document.activeElement;
+      if(rows.indexOf(r) < 0) return;
+      ev.preventDefault(); act(r);
+    }
+  });
+  return rows[start];
+}
+function chSealed(r){ return !!r && r.getAttribute("data-kind") === "sealed"; }
+/* item 12: a sealed record is denied and the attempt is recorded to RAISA, now and later */
+function chRaisa(scope){
+  chRaisaCount++;
+  var el = scope && scope.querySelector ? scope.querySelector(".ch-raisa") : null;
+  if(el){
+    el.textContent = "unauthorised access attempt recorded \u00b7 logged to RAISA (" + chRaisaCount + ")";
+    el.classList.add("on");
+  }
+  Sound.deny();
+  return chRaisaCount;
+}
+/* item 16: the workstation clock on the archive screen */
+function chClock(){
+  var d = new Date();
+  function pad(n){ return (n < 10 ? "0" : "") + n; }
+  return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+}
+function chClockStart(root){
+  chClockStop();
+  function tick(){ [].forEach.call(root.querySelectorAll(".ow-clock"), function(e){ e.textContent = chClock(); }); }
+  tick();
+  chClockT = setInterval(tick, 1000);
+}
+function chClockStop(){ if(chClockT){ clearInterval(chClockT); chClockT = null; } }
 /* ---- back out of the open Group file: the terminal's own file index returns ---- */
 var indexBackBusy = false;
 function fileIndexBack(){
@@ -2563,24 +2685,28 @@ function boot(){
     setTimeout(function(){ var w = out.querySelector(".boot-welcome"); if(w) w.classList.add("redact-in"); Sound.stamp(); }, 1050);
     setTimeout(stageSelect, 4800);
   }
-  /* the file index: the terminal holds one readable record; every other seat is sealed */
+  /* the file index: the terminal holds one readable record; every other seat is sealed.
+     The sealed seats are real controls (item 12): pressing one is denied and logged to RAISA. */
   function seatMenuHTML(){
     var rows = "";
     for(var n = 1; n <= 13; n++){
       if(n === 4){
-        rows += '<li class="seat open"><button type="button" class="seat-btn" data-pick="O5-4">'
+        rows += '<li><button type="button" class="seat-btn ch-row" data-kind="open" data-pick="O5-4">'
               + '<span class="seat-n">O5-4</span><span class="seat-t">O5 Command Dossier</span>'
               + '<span class="seat-g">OPEN</span></button></li>';
       } else {
-        rows += '<li class="seat sealed"><span class="seat-rd w1" aria-hidden="true"></span>'
-              + '<span class="seat-rd w2" aria-hidden="true"></span><span class="seat-g">SEALED</span></li>';
+        rows += '<li><button type="button" class="seat sealed ch-row" data-kind="sealed" data-seat="' + n + '"'
+              + ' aria-label="Sealed Council seat">'
+              + '<span class="seat-rd w1" aria-hidden="true"></span>'
+              + '<span class="seat-rd w2 ch-bar" aria-hidden="true"></span><span class="seat-g">SEALED</span></button></li>';
       }
     }
     return '<div class="boot-pick">'
-         + '<div class="bp-h">File Index \u00b7 Council Seats</div>'
-         + '<div class="bp-s"><s>One</s> record is held at this clearance. Sealed entries are not accessible by this terminal.</div>'
+         + '<div class="ch-h bp-h">File Index \u00b7 Council Seats</div>'
+         + '<div class="ch-s bp-s"><s>One</s> record is held at this clearance. Sealed entries are not accessible by this terminal.</div>'
          + '<ul class="seat-list">' + rows + '</ul>'
-         + '<div class="bp-f">Select a record to open</div>'
+         + '<div class="ch-f bp-f">Select a record to open</div>'
+         + '<div class="ch-raisa" role="status" aria-live="polite"></div>'
          + '<div class="bp-back"><button type="button" class="ret an" id="idxBack" title="Return to the standby terminal">&#8592; Return to terminal</button></div>'
          + '</div>';
   }
@@ -2592,38 +2718,40 @@ function boot(){
     out.innerHTML = seatMenuHTML();
     Sound.relay();
     var menu = out.querySelector(".boot-pick");
-    var first = out.querySelector("[data-pick]");
     var picked = false, left = false;
+    var chScope = menu || out;
+    /* item 10: on the first visit the entries lift out of their redaction boxes, one at a time */
+    chReveal(chScope, "an", ".ch-row");
     /* the index can hand control straight back to the standby gate: the terminal is put
        back into the state it had on first entry, then the gate is drawn again */
     function backToGate(){
       if(picked || left) return;
       left = true;
-      window.removeEventListener("keydown", onKey);
       Sound.relay();
       showGate();
     }
     var backBtn = out.querySelector("#idxBack");
     if(backBtn) backBtn.addEventListener("click", backToGate);
-    function onKey(ev){
-      if(ev.key !== "Enter" && ev.key !== " " && ev.key !== "Spacebar") return;
-      ev.preventDefault();
-      var b = out.querySelector("[data-pick]"); if(b) b.click();
+    /* item 12: a sealed seat is denied and recorded to RAISA; the one open seat opens */
+    function choose(r){
+      if(left || picked) return;
+      if(chSealed(r)){ chRaisa(chScope); return; }
+      pick(r.getAttribute("data-pick"));
     }
     /* the index becomes live a moment after it is drawn: the press that opened the terminal
        (its click, or its key-up landing on the freshly focused button) must not also pick a record */
     setTimeout(function(){
       if(picked || left) return;
       if(menu) menu.addEventListener("click", function(ev){
-        var b = ev.target.closest ? ev.target.closest("[data-pick]") : null;
-        if(b) pick(b.getAttribute("data-pick"));
+        var b = ev.target.closest ? ev.target.closest(".ch-row") : null;
+        if(b) choose(b);
       });
-      window.addEventListener("keydown", onKey);
-      if(first){ try{ first.focus({ preventScroll:true }); }catch(e){ first.focus(); } }
+      /* item 13: the arrow keys move between entries, Enter opens, one roving tabindex stop */
+      var f = chKeys(chScope, ".ch-row", choose, '[data-kind="open"]');
+      if(f){ try{ f.focus({ preventScroll:true }); }catch(e){ f.focus(); } }
     }, 300);
     function pick(id){
       if(picked) return; picked = true;
-      window.removeEventListener("keydown", onKey);
       var req = document.getElementById("sideReq"); if(req) req.textContent = id;
       Sound.ok(); Sound.stamp();
       stepEl.textContent = "OPEN";
@@ -2956,24 +3084,42 @@ function officeBoot(){
   function openDoc(which, fromClearance){
     docFromClearance = !!fromClearance;
     var d = window.AN_OFFICE || {};
-    docBody.innerHTML = d[which] || '<div class="od-hold"><div class="odh-big">record unavailable</div></div>';
-    docEl.classList.add("show"); docEl.setAttribute("aria-hidden", "false");
-    if(docScroll) docScroll.scrollTop = 0;
-    Sound.open();
-    var bk = document.getElementById("offDocBack");
-    if(bk){ try{ bk.focus({ preventScroll:true }); }catch(e){ bk.focus(); } }
+    /* item 9: the Office opens a record through the same black CRT screen as the Group */
+    function showIt(){
+      docBody.innerHTML = d[which] || '<div class="od-hold"><div class="odh-big">record unavailable</div></div>';
+      /* item 12: attempts at sealed records resurface here, inside the Office's own record */
+      if(chRaisaCount){
+        var rn = document.createElement("div");
+        rn.className = "od-raisa";
+        rn.innerHTML = "<b>RAISA</b> " + chRaisaCount + " unauthorised access attempt" + (chRaisaCount === 1 ? "" : "s")
+          + " recorded at this terminal during this session.";
+        docBody.insertBefore(rn, docBody.firstChild);
+      }
+      docEl.classList.add("show"); docEl.setAttribute("aria-hidden", "false");
+      if(docScroll) docScroll.scrollTop = 0;
+      Sound.open();
+      var bk = document.getElementById("offDocBack");
+      if(bk){ try{ bk.focus({ preventScroll:true }); }catch(e){ bk.focus(); } }
+    }
+    if(rm || document.getElementById("opening")) showIt();
+    else fileScreen("OPENING DOCUMENT FILE\u2026", 1200, null, showIt);
   }
   function closeDoc(){
-    docEl.classList.remove("show"); docEl.setAttribute("aria-hidden", "true"); Sound.close();
-    /* a record opened through clearance leaves the clearance log behind: return to the archive */
-    if(docFromClearance){ docFromClearance = false; showFolder(true); }
+    function after(){
+      docEl.classList.remove("show"); docEl.setAttribute("aria-hidden", "true"); Sound.close();
+      /* a record opened through clearance leaves the clearance log behind: return to the archive */
+      if(docFromClearance){ docFromClearance = false; showFolder(true); }
+    }
+    /* item 9: closing a record uses the same black CRT screen as the Group */
+    if(rm || document.getElementById("opening")) after();
+    else fileScreen("CLOSING DOCUMENT FILE\u2026", 900, null, after);
   }
   var docBack = document.getElementById("offDocBack");
   if(docBack) docBack.addEventListener("click", closeDoc);
   document.addEventListener("keydown", function(ev){ if(ev.key === "Escape" && docEl.classList.contains("show")) closeDoc(); });
 
   /* ---- the archive's return control: up only while the archive is, and it goes back to the gate ---- */
-  function archBack(on){ if(root) root.classList.toggle("arch", !!on); }
+  function archBack(on){ if(root) root.classList.toggle("arch", !!on); if(!on) chClockStop(); }
   var archBackBtn = document.getElementById("offArchBack");
   if(archBackBtn) archBackBtn.addEventListener("click", function(){ Sound.relay(); showGate(); });
 
@@ -3104,20 +3250,26 @@ function officeBoot(){
   }
   function archiveHTML(){
     function entry(id, ref, name, st, cls, lamp){
-      return '<li><button type="button" class="oa-entry ' + (cls || '') + '" data-off="' + id + '">'
-        + '<span class="oa-ref">' + ref + '</span><span class="oa-name">' + name + '</span>'
+      var sealed = cls === "locked";
+      return '<li><button type="button" class="oa-entry ch-row ' + (cls || '') + '" data-off="' + id + '"'
+        + ' data-kind="' + (sealed ? "sealed" : "open") + '">'
+        + '<span class="oa-ref">' + ref + '</span>'
+        + '<span class="oa-name' + (sealed ? ' ch-bar' : '') + '">' + name + '</span>'
         + (lamp ? '<span class="oa-lamp" aria-hidden="true"></span>' : '')
         + '<span class="oa-st">' + st + '</span></button></li>';
     }
     return '<div class="off-arch">'
-      + '<div class="oa-h">Office of the 4th \u2014 Restricted Archive</div>'
-      + '<div class="oa-s">Records held at this terminal. Sealed Entries Require <span class="oa-glitch" data-rt="' + bars(6) + '">' + bars(6) + '</span> Biometric Clearance.</div>'
+      + '<div class="ch-h oa-h">Office of the 4th \u2014 Restricted Archive</div>'
+      + '<div class="ch-s oa-s">Records held at this terminal. Sealed Entries Require <span class="oa-glitch" data-rt="' + bars(6) + '">' + bars(6) + '</span> Biometric Clearance.</div>'
       + '<ul class="oa-list">'
       + entry('group', 'GROUP-' + bars(6), 'CODENAME: ARCHIVE NINE \u00b7 O5-4 INVESTIGATION', 'OPEN', 'open')
       + entry('office', 'O4/INV-AN', 'OFFICE OF THE 4TH \u00b7 INVESTIGATION RECORD', 'OPEN', 'open')
       + entry('notes', bars(8), bars(14) + ' \u00b7 ' + bars(6), 'LOCKED', 'locked', true)
       + entry('personnel', bars(6), bars(10) + ' \u00b7 ' + bars(8), 'LOCKED', 'locked', true)
-      + '</ul></div>';
+      + '</ul>'
+      + '<div class="ch-f">Select a record to open</div>'
+      + '<div class="ch-raisa" role="status" aria-live="polite"></div>'
+      + '</div>';
   }
   function showFolder(alreadyOpen){
     archBack(true);
@@ -3125,7 +3277,16 @@ function officeBoot(){
     hint.textContent = alreadyOpen ? "" : "press the folder to open";
     setBody('<div class="off-folder" id="offFolder">'
       + '<div class="ofc-inner">'
-      +   '<div class="ofc-inside">' + archiveHTML() + '</div>'
+      +   '<div class="ofc-inside">'
+      +     '<div class="ow-win">'
+      +       '<div class="ow-bar"><span class="ow-dots"><i></i><i></i><i></i></span>'
+      +         '<span class="ow-title">Restricted Archive \u00b7 O5-4@SCIPNET</span>'
+      +         '<span class="ow-clock" id="offWinClock">--:--:--</span></div>'
+      +       '<div class="ow-pane">' + archiveHTML() + '</div>'
+      +     '</div>'
+      +     '<div class="ow-task"><span class="ow-chip on">archive</span><span class="ow-chip">raisa</span>'
+      +       '<span class="ow-chip">terminal</span><span class="ow-clock" id="offTaskClock">--:--:--</span></div>'
+      +   '</div>'
       +   '<div class="ofc-cover" role="button" tabindex="0" aria-label="Open the Restricted Archive">'
       +     '<div class="ofc-face">'
       +       '<div class="ofc-seal"><svg aria-hidden="true" focusable="false"><use href="#o5Seal"/></svg></div>'
@@ -3140,31 +3301,44 @@ function officeBoot(){
       + '</div>');
     var folder = document.getElementById("offFolder");
     var cover = folder.querySelector(".ofc-cover");
+    var inside = folder.querySelector(".ofc-inside");
     var opened = false;
     function openFolder(){
       if(opened) return; opened = true;
       folder.classList.add("open"); folder.classList.remove("armed");
       var h = document.getElementById("offFolderHint"); if(h) h.textContent = "select a record";
       Sound.open(); Sound.turn(1);
+      /* item 10 + 16: the archive's rows lift out of their redaction boxes, and its clock runs */
+      chReveal(inside, "off", ".ch-row");
+      chClockStart(folder);
     }
     cover.addEventListener("click", openFolder);
     cover.addEventListener("keydown", function(ev){
       if(ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar"){ ev.preventDefault(); openFolder(); }
     });
-    folder.addEventListener("click", function(ev){
-      if(!opened) return;
-      var b = ev.target.closest ? ev.target.closest("[data-off]") : null;
-      if(!b) return;
-      Sound.press();
+    /* item 12: a locked record is denied and recorded to RAISA before the record is asked for */
+    function chooseEntry(b){
+      if(!opened || !b) return;
+      if(chSealed(b)) chRaisa(inside);
       var id = b.getAttribute("data-off");
       if(id === "group") handOff();
       else if(id === "office") openDoc("doc2");
       else confirmStage(id);
+    }
+    folder.addEventListener("click", function(ev){
+      var b = ev.target.closest ? ev.target.closest("[data-off]") : null;
+      if(!b || !opened) return;
+      Sound.press();
+      chooseEntry(b);
     });
+    /* item 13: the arrow keys move between records, Enter opens, one roving tabindex stop */
+    chKeys(inside, ".ch-row", chooseEntry, '[data-kind="open"]');
     folder.classList.add("armed");
     if(alreadyOpen){
       opened = true; folder.classList.remove("armed"); folder.classList.add("open");
       var h2 = document.getElementById("offFolderHint"); if(h2) h2.textContent = "select a record";
+      chReveal(inside, "off", ".ch-row");
+      chClockStart(folder);
     }
   }
 
