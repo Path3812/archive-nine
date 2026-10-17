@@ -423,6 +423,7 @@ html.lite .leaf-back::after{ animation:none; }
 .seat-btn .seat-g{ color:var(--chrome); }
 .seat-btn:hover, .seat-btn:focus-visible{ background:rgba(201,163,94,.18); border-color:var(--chrome); outline:none; box-shadow:0 0 26px -8px var(--chrome); }
 .boot-pick .bp-f{ margin-top:11px; padding-top:8px; border-top:1px solid #28200f; color:var(--steel-dim); font-size:9.5px; letter-spacing:.2em; text-transform:uppercase; }
+.boot-pick .bp-back{ margin-top:14px; }
 .boot-body.solo{ grid-template-columns:minmax(0,1fr); }
 .boot-body.solo .boot-side{ display:none; }
 .boot-log.center{ justify-content:center; }
@@ -2576,6 +2577,7 @@ function boot(){
          + '<div class="bp-s">One record is held at this clearance. Sealed entries are not held by this terminal.</div>'
          + '<ul class="seat-list">' + rows + '</ul>'
          + '<div class="bp-f">Select a record to open \u00b7 read-only</div>'
+         + '<div class="bp-back"><button type="button" class="ret" id="idxBack" title="Return to the standby terminal">&#8592; Return to terminal</button></div>'
          + '</div>';
   }
   function stageSelect(){
@@ -2587,7 +2589,18 @@ function boot(){
     Sound.relay();
     var menu = out.querySelector(".boot-pick");
     var first = out.querySelector("[data-pick]");
-    var picked = false;
+    var picked = false, left = false;
+    /* the index can hand control straight back to the standby gate: the terminal is put
+       back into the state it had on first entry, then the gate is drawn again */
+    function backToGate(){
+      if(picked || left) return;
+      left = true;
+      window.removeEventListener("keydown", onKey);
+      Sound.relay();
+      showGate();
+    }
+    var backBtn = out.querySelector("#idxBack");
+    if(backBtn) backBtn.addEventListener("click", backToGate);
     function onKey(ev){
       if(ev.key !== "Enter" && ev.key !== " " && ev.key !== "Spacebar") return;
       ev.preventDefault();
@@ -2596,7 +2609,7 @@ function boot(){
     /* the index becomes live a moment after it is drawn: the press that opened the terminal
        (its click, or its key-up landing on the freshly focused button) must not also pick a record */
     setTimeout(function(){
-      if(picked) return;
+      if(picked || left) return;
       if(menu) menu.addEventListener("click", function(ev){
         var b = ev.target.closest ? ev.target.closest("[data-pick]") : null;
         if(b) pick(b.getAttribute("data-pick"));
@@ -2797,8 +2810,13 @@ function boot(){
 
   if(rm){ el.classList.add("gone"); el.style.display = "none"; reveal(); armAudio(); return; }
   renderSide(); meta.textContent = "SESSION " + SID;
-  (function showGate(){
-    stepEl.textContent = "STANDBY";
+  /* the standby gate. A named function, not an IIFE, because the file index hands control
+     back here through backToGate(). It resets the frame it owns, so first entry and return
+     leave the terminal in the same state. */
+  function showGate(){
+    Sound.real(false); Sound.scene();   /* the Group's own terminal keeps its original sounds */
+    stepEl.textContent = "STANDBY"; prog.style.width = "0%"; hint.textContent = "";
+    out.className = "boot-log";
     out.innerHTML = '<div class="boot-gate"><div class="seal"></div><div class="g-t">Archive Nine</div><div class="g-s">Access Terminal \u00b7 no record selected</div><div class="g-s">Local offline session \u00b7 Operator authentication required</div><button class="g-p" id="gateBtn" type="button">Press here to open terminal</button></div>';
     var gsl = out.querySelector(".boot-gate .seal"), gsrc = document.querySelector(".brand .glyph");
     if(gsl && gsrc) gsl.appendChild(gsrc.cloneNode(true));
@@ -2818,7 +2836,8 @@ function boot(){
       /* the gate must be pressed on the control itself; keyboard users can focus it and press Enter */
       try{ gateBtn.focus({ preventScroll:true }); }catch(e){ gateBtn.focus(); }
     }
-  })();
+  }
+  showGate();
 }
 function reveal(){
   var b = document.body;
