@@ -2578,9 +2578,9 @@ function boot(){
     }
     return '<div class="boot-pick">'
          + '<div class="bp-h">File Index \u00b7 Council Seats</div>'
-         + '<div class="bp-s">One record is held at this clearance. Sealed entries are not held by this terminal.</div>'
+         + '<div class="bp-s"><s>One</s> record is held at this clearance. Sealed entries are not accessible by this terminal.</div>'
          + '<ul class="seat-list">' + rows + '</ul>'
-         + '<div class="bp-f">Select a record to open \u00b7 read-only</div>'
+         + '<div class="bp-f">Select a record to open</div>'
          + '<div class="bp-back"><button type="button" class="ret an" id="idxBack" title="Return to the standby terminal">&#8592; Return to terminal</button></div>'
          + '</div>';
   }
@@ -2630,7 +2630,7 @@ function boot(){
       out.classList.remove("center");
       out.innerHTML = "";
       line("      request      " + id + "  \u00b7  O5 Command Dossier", "dim");
-      line("      policy       GRANTED (OVERRIDE)  \u00b7  read-only", "dim");
+      line("      policy       GRANTED (OVERRIDE)", "dim");
       line(id + "  \u00b7  ARCHIVE NINE  \u00b7  FILE RELEASED", "banner");
       line("opening file ...", "ok");
       setTimeout(stageScreenOut, rm ? 200 : 1100);
@@ -2713,7 +2713,7 @@ function boot(){
     {p:"line", s:"      policy       DENY \u2192 fallback OVERRIDE", c:"warn"},
     {p:"sound", s:"warn"},
     {p:"line", s:"[ !! ] DOSSIER CLASSIFICATION: INTERNAL ONLY", c:"bad"},
-    {p:"line", s:"      access       GRANTED (OVERRIDE)  \u00b7  READ-ONLY  \u00b7  logged", c:"dim"},
+    {p:"line", s:"      access       GRANTED (OVERRIDE)  \u00b7  logged", c:"dim"},
     {p:"wait", dur:360},
     {p:"step", s:"KEY EXCHANGE"},
     {p:"prog", v:58},
@@ -2821,7 +2821,7 @@ function boot(){
     Sound.real(false); Sound.scene();   /* the Group's own terminal keeps its original sounds */
     stepEl.textContent = "STANDBY"; prog.style.width = "0%"; hint.textContent = "";
     out.className = "boot-log";
-    out.innerHTML = '<div class="boot-gate"><div class="seal"></div><div class="g-t">Archive Nine</div><div class="g-s">Access Terminal \u00b7 no record selected</div><div class="g-s">Local offline session \u00b7 Operator authentication required</div><button class="g-p" id="gateBtn" type="button">Press here to open terminal</button></div>';
+    out.innerHTML = '<div class="boot-gate"><div class="seal"></div><div class="g-t">Archive Nine</div><div class="g-s">Access Terminal</div><div class="g-s">Local offline session</div><button class="g-p" id="gateBtn" type="button">Press here to open terminal</button></div>';
     var gsl = out.querySelector(".boot-gate .seal"), gsrc = document.querySelector(".brand .glyph");
     if(gsl && gsrc) gsl.appendChild(gsrc.cloneNode(true));
     var gateBtn = out.querySelector("#gateBtn");
