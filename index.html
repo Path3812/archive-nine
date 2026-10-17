@@ -2728,7 +2728,10 @@ function boot(){
       if(picked || left) return;
       left = true;
       Sound.relay();
-      showGate();
+      /* re-enter the terminal rather than just redrawing the gate: finish() stopped the clock
+         and the side-panel tick and left the side panel on the old session, so a plain redraw
+         would hand back a half-dead terminal. boot() rebuilds all of it and ends at the gate. */
+      boot();
     }
     var backBtn = out.querySelector("#idxBack");
     if(backBtn) backBtn.addEventListener("click", backToGate);
@@ -2960,6 +2963,9 @@ function boot(){
       if(gateBtn) gateBtn.removeEventListener("click", go);
       window.removeEventListener("keydown", go);
       Sound.start(); Sound.relay(); Sound.beep(880);
+      /* a fresh run, mirroring the Office's startBoot(): the sequence cursor and the finished
+         flag must both be clear, or next() returns on the spot and leaves the log empty */
+      done = false; i = 0;
       out.innerHTML = ""; hint.textContent = "";
       next();
     }
