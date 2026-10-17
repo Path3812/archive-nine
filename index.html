@@ -444,11 +444,11 @@ html.lite .leaf-back::after{ animation:none; }
   transform-origin:left center; transform:scaleX(0); opacity:0; pointer-events:none;
   transition:transform .34s cubic-bezier(.45,0,.2,1), opacity .3s ease; }
 .ch-row.ch-lid::after{ transform:scaleX(1); opacity:1; }
-/* item 11: a faint, deliberately unsynced glitch on every sealed entry */
-.ch-row[data-kind="sealed"] .ch-bar{ animation:chGlitch 5.1s steps(1) infinite; }
-.ch-row[data-kind="sealed"]:nth-child(2n) .ch-bar{ animation-duration:6.3s; }
-.ch-row[data-kind="sealed"]:nth-child(3n) .ch-bar{ animation-duration:7.1s; }
-@keyframes chGlitch{ 0%,93%,100%{ opacity:1; transform:none; } 95%{ opacity:.4; transform:translateX(1px); } 97%{ opacity:.8; transform:translateX(-1px); } }
+/* item 11: a faint, slowly pulsing glow on every sealed entry */
+.ch-row[data-kind="sealed"] .ch-bar{ animation:chGlow 3.6s ease-in-out infinite; opacity:.6; }
+.ch-row[data-kind="sealed"]:nth-child(2n) .ch-bar{ animation-duration:4.2s; }
+.ch-row[data-kind="sealed"]:nth-child(3n) .ch-bar{ animation-duration:4.8s; }
+@keyframes chGlow{ 0%,100%{ opacity:.6; } 50%{ opacity:.9; } }
 /* item 13: a visible focus ring on every reachable entry, on both screens */
 .boot-pick .ch-row:focus-visible, .off-arch .ch-row:focus-visible{ outline:1px solid var(--ch-acc); outline-offset:2px; }
 /* item 12: sealed rows become real controls, still visually denied */
@@ -458,7 +458,7 @@ button.seat.sealed:hover, button.seat.sealed:focus-visible{ background:rgba(201,
   border-color:rgba(201,163,94,.34); outline:none; }
 .ch-row[data-kind="sealed"]:hover::after, .ch-row[data-kind="sealed"]:focus-visible::after{ opacity:.06; transform:scaleX(1); }
 @media (prefers-reduced-motion: reduce){ .ch-row::after{ transition:none; } .ch-row[data-kind="sealed"] .ch-bar{ animation:none; } }
-html.lite .ch-row[data-kind="sealed"] .ch-bar{ animation-duration:9s; }
+html.lite .ch-row[data-kind="sealed"] .ch-bar{ animation-duration:6s; }
 .boot-body.solo{ grid-template-columns:minmax(0,1fr); }
 .boot-body.solo .boot-side{ display:none; }
 .boot-log.center{ justify-content:center; }
@@ -2150,7 +2150,7 @@ function chReveal(scope, key, sel){
   if(first) chRevealDone[key] = true;
   rows.forEach(function(r){ r.classList.add("ch-lid"); });
   if(first && !reducedMotion()){
-    rows.forEach(function(r, i){ setTimeout(function(){ r.classList.remove("ch-lid"); }, 130 + i * 115); });
+    rows.forEach(function(r, i){ setTimeout(function(){ r.classList.remove("ch-lid"); }, 220 + i * 220); });
   } else {
     rows.forEach(function(r){ r.classList.remove("ch-lid"); });
   }
@@ -2163,14 +2163,78 @@ function chKeys(scope, sel, act, startSel){
   if(startSel){ for(var k = 0; k < rows.length; k++){ if(rows[k].matches(startSel)){ start = k; break; } } }
   function setAt(i){ rows.forEach(function(r, j){ r.setAttribute("tabindex", j === i ? "0" : "-1"); }); }
   setAt(start);
+  function getCols(){
+    if(!rows.length) return 1;
+    var cs = getComputedStyle(scope);
+    if(cs.display.indexOf("grid") !== -1){
+      var tp = rows[0].getBoundingClientRect().top;
+      var c = 1;
+      for(var i = 1; i < rows.length; i++){
+        if(Math.abs(rows[i].getBoundingClientRect().top - tp) < 2) c++;
+        else break;
+      }
+      return c;
+    }
+    return 1;
+  }
   function move(i){
     i = (i + rows.length) % rows.length; setAt(i);
     try{ rows[i].focus({ preventScroll:true }); }catch(e){ rows[i].focus(); }
   }
-  scope.addEventListener("keydown", function(ev){
+  function move2D(dir){
+    var cols = getCols();
+    if(cols <= 1){
+      var i = rows.indexOf(document.activeElement);
+      if(dir === "right" || dir === "down") move(i < 0 ? 0 : i + 1);
+      else if(dir === "left" || dir === "up") move(i < 0 ? rows.length - 1 : i - 1);
+      return;
+    }
     var i = rows.indexOf(document.activeElement);
-    if(ev.key === "ArrowDown" || ev.key === "ArrowRight"){ ev.preventDefault(); move(i < 0 ? 0 : i + 1); }
-    else if(ev.key === "ArrowUp" || ev.key === "ArrowLeft"){ ev.preventDefault(); move(i < 0 ? rows.length - 1 : i - 1); }
+    if(i < 0) i = start;
+    var r = Math.floor(i / cols), c = i % cols;
+    var rowsCount = rows.length, totalRows = Math.ceil(rowsCount / cols);
+    if(dir === "right"){
+      var ni = i + 1;
+      if(ni >= rowsCount) ni = r * cols; // wrap to row start
+      move(ni);
+      return;
+    }
+    if(dir === "left"){
+      var ni2 = i - 1;
+      if(ni2 < 0) ni2 = (r === 0 ? (totalRows - 1) * cols + Math.min(c, (rowsCount - 1) % cols) : ni2);
+      if(ni2 < 0) ni2 = rowsCount - 1;
+      if(ni2 >= rowsCount) ni2 = rowsCount - 1;
+      move(ni2);
+      return;
+    }
+    if(dir === "down"){
+      var nr = r + 1, nc = c;
+      if(nr >= totalRows){
+        nr = 0; // wrap to top
+      }
+      var ni3 = nr * cols + nc;
+      if(ni3 >= rowsCount){
+        ni3 = nr * cols; // last row may be shorter
+        if(ni3 >= rowsCount) ni3 = 0;
+      }
+      move(ni3);
+      return;
+    }
+    if(dir === "up"){
+      var nr2 = r - 1, nc2 = c;
+      if(nr2 < 0) nr2 = totalRows - 1;
+      var ni4 = nr2 * cols + nc2;
+      if(ni4 >= rowsCount) ni4 = rowsCount - 1;
+      move(ni4);
+      return;
+    }
+    move(i);
+  }
+  scope.addEventListener("keydown", function(ev){
+    if(ev.key === "ArrowRight"){ ev.preventDefault(); move2D("right"); }
+    else if(ev.key === "ArrowLeft"){ ev.preventDefault(); move2D("left"); }
+    else if(ev.key === "ArrowDown"){ ev.preventDefault(); move2D("down"); }
+    else if(ev.key === "ArrowUp"){ ev.preventDefault(); move2D("up"); }
     else if(ev.key === "Home"){ ev.preventDefault(); move(0); }
     else if(ev.key === "End"){ ev.preventDefault(); move(rows.length - 1); }
     else if(ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar"){
@@ -2184,14 +2248,14 @@ function chKeys(scope, sel, act, startSel){
 function chSealed(r){ return !!r && r.getAttribute("data-kind") === "sealed"; }
 /* item 12: a sealed record is denied and the attempt is recorded to RAISA, now and later */
 function chRaisa(scope){
-  chRaisaCount++;
+ 
   var el = scope && scope.querySelector ? scope.querySelector(".ch-raisa") : null;
   if(el){
     el.textContent = "unauthorised access attempt recorded \u00b7 logged to RAISA (" + chRaisaCount + ")";
     el.classList.add("on");
   }
   Sound.deny();
-  return chRaisaCount;
+  return 0;
 }
 /* item 16: the workstation clock on the archive screen */
 function chClock(){
@@ -2216,7 +2280,7 @@ function fileIndexBack(){
   indexBackBusy = true;
   flushTurns(); syncFolderPage(); scrollFileTop(); positionFolder();
   /* the file and the terminal cross over beneath the black CRT screen */
-  fileScreen("CLOSING DOCUMENT FILE\u2026", 1500, "close", function(){
+  fileScreen("CLOSING DOCUMENT FILE\u2026", 1200, "close", function(){
     indexBackBusy = false;
     folderDisarm();
     f.classList.remove("show","closed","opening","closing");
@@ -2776,7 +2840,7 @@ function boot(){
     setTimeout(function(){ stageOpening(2200); }, 1750);
   }
   /* the black CRT "opening document" screen, then the folder opening onto the first page */
-  function stageOpening(hold){ fileScreen("OPENING DOCUMENT FILE\u2026", hold, "open", folderStage); }
+  function stageOpening(hold){ fileScreen("OPENING DOCUMENT FILE\u2026", 1800, "open", folderStage); }
   /* (folder open/close live at module scope: folderStage / folderOpen / folderClose) */
   function renderSide(){
     if(!side) return;
@@ -2816,10 +2880,10 @@ function boot(){
     {p:"line", s:"A.N. ACCESS TERMINAL  \u00b7  build 0.9.14", c:"banner"},
     {p:"line", s:"(c) ARCHIVE NINE ARCHIVAL SYSTEMS \u2014 internal circulation", c:"dim"},
     {p:"wait", dur:160},
-    {p:"type", s:"POST  cpu   archive-1 .......... ok", c:"dim", sp:TYPE_MS_FAST},
-    {p:"type", s:"POST  mem   262144 kb .......... ok", c:"dim", sp:TYPE_MS_FAST},
-    {p:"line", s:"POST  keystore / token bus ..... ok", c:"dim"},
-    {p:"line", s:"POST  tamper seal .............. intact", c:"ok"},
+    {p:"type", s:"POST  cpu ....................... ok", c:"dim", sp:TYPE_MS_FAST},
+    {p:"type", s:"POST  memory 262144 KB .......... ok", c:"dim", sp:TYPE_MS_FAST},
+    {p:"line", s:"POST  keystore .................. ok", c:"dim"},
+    {p:"line", s:"POST  tamper seal ............... intact", c:"ok"},
     {p:"wait", dur:150},
     {p:"step", s:"IDENTITY"},
     {p:"prog", v:10},
@@ -3093,14 +3157,7 @@ function officeBoot(){
     /* item 9: the Office opens a record through the same black CRT screen as the Group */
     function showIt(){
       docBody.innerHTML = d[which] || '<div class="od-hold"><div class="odh-big">record unavailable</div></div>';
-      /* item 12: attempts at sealed records resurface here, inside the Office's own record */
-      if(chRaisaCount){
-        var rn = document.createElement("div");
-        rn.className = "od-raisa";
-        rn.innerHTML = "<b>RAISA</b> " + chRaisaCount + " unauthorised access attempt" + (chRaisaCount === 1 ? "" : "s")
-          + " recorded at this terminal during this session.";
-        docBody.insertBefore(rn, docBody.firstChild);
-      }
+
       docEl.classList.add("show"); docEl.setAttribute("aria-hidden", "false");
       if(docScroll) docScroll.scrollTop = 0;
       Sound.open();
@@ -3108,7 +3165,7 @@ function officeBoot(){
       if(bk){ try{ bk.focus({ preventScroll:true }); }catch(e){ bk.focus(); } }
     }
     if(rm || document.getElementById("opening")) showIt();
-    else fileScreen("OPENING DOCUMENT FILE\u2026", 1200, null, showIt);
+    else fileScreen("OPENING DOCUMENT FILE\u2026", 1800, null, showIt);
   }
   function closeDoc(){
     function after(){
@@ -3118,7 +3175,7 @@ function officeBoot(){
     }
     /* item 9: closing a record uses the same black CRT screen as the Group */
     if(rm || document.getElementById("opening")) after();
-    else fileScreen("CLOSING DOCUMENT FILE\u2026", 900, null, after);
+    else fileScreen("CLOSING DOCUMENT FILE\u2026", 1200, null, after);
   }
   var docBack = document.getElementById("offDocBack");
   if(docBack) docBack.addEventListener("click", closeDoc);
@@ -3163,9 +3220,10 @@ function officeBoot(){
     {p:"line", s:"OFFICE OF THE FOURTH  \u00b7  secure terminal 5.2.1", c:"banner"},
     {p:"line", s:"classified channel \u00b7 weak ciphers refused", c:"dim"},
     {p:"wait", dur:180},
-    {p:"type", s:"POST  secure enclave ............ ok", c:"dim", sp:TYPE_MS_FAST},
-    {p:"type", s:"POST  tamper monitor ............ ok", c:"dim", sp:TYPE_MS_FAST},
-    {p:"line", s:"POST  rf shield ................. closed", c:"ok"},
+    {p:"type", s:"POST  cpu ....................... ok", c:"dim", sp:TYPE_MS_FAST},
+    {p:"type", s:"POST  memory 262144 KB .......... ok", c:"dim", sp:TYPE_MS_FAST},
+    {p:"line", s:"POST  rf shield ................ closed", c:"ok"},
+    {p:"line", s:"POST  tamper seal ............... intact", c:"ok"},
     {p:"sound", s:"breathe"},
     {p:"spin", label:"reading interface token", tail:"slot 4", dur:820, done:"[ ok ] token accepted"},
     {p:"step", s:"IDENTITY"},
